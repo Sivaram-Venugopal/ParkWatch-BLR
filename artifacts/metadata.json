@@ -1,0 +1,105 @@
+{
+  "data_summary": {
+    "raw_rows": 298445,
+    "after_cleaning": 243274,
+    "congestion_relevant_rows": 243274,
+    "clustered_rows": 243274,
+    "n_grid_cells_touched": 5484,
+    "n_qualifying_hotspot_zones": 2100,
+    "date_range_start": "2023-11-09",
+    "date_range_end": "2024-04-08",
+    "n_police_stations": 54
+  },
+  "model_performance": {
+    "best_model": "Random Forest",
+    "r2_score": 0.9086,
+    "mae": 0.5909,
+    "random_forest": {
+      "r2": 0.9086,
+      "mae": 0.5909,
+      "cv_r2_mean": 0.9086,
+      "cv_r2_std": 0.0016,
+      "cv_mae_mean": 0.5909,
+      "cv_mae_std": 0.0022
+    },
+    "gradient_boosting": {
+      "r2": 0.8967,
+      "mae": 0.6627,
+      "cv_r2_mean": 0.8967,
+      "cv_r2_std": 0.0007,
+      "cv_mae_mean": 0.6627,
+      "cv_mae_std": 0.0025
+    },
+    "feature_importances": {
+      "hour_sin": 0.3656,
+      "hour_cos": 0.3233,
+      "vehicle_type_enc": 0.264,
+      "longitude": 0.0211,
+      "latitude": 0.0107,
+      "police_station_enc": 0.0058,
+      "cluster_id_enc": 0.0056,
+      "dow_sin": 0.0022,
+      "dow_cos": 0.0015,
+      "is_weekend": 0.0002
+    }
+  },
+  "cis_methodology": {
+    "violation_severity_weights": {
+      "DOUBLE PARKING": 5,
+      "PARKING OPPOSITE TO ANOTHER PARKED VEHICLE": 5,
+      "AGAINST ONE WAY/NO ENTRY": 5,
+      "PARKING IN A MAIN ROAD": 4,
+      "PARKING NEAR ROAD CROSSING": 4,
+      "PARKING NEAR TRAFFIC LIGHT OR ZEBRA CROSS": 4,
+      "VIOLATING LANE DISIPLINE": 4,
+      "JUMPING TRAFFIC SIGNAL": 4,
+      "OBSTRUCTING DRIVER": 4,
+      "WRONG PARKING": 3,
+      "PARKING NEAR BUSTOP/SCHOOL/HOSPITAL ETC": 3,
+      "PARKING OTHER THAN BUS STOP": 3,
+      "STOPING ON WHITE/STOP LINE": 3,
+      "H T V PROHIBITED": 3,
+      "NO PARKING": 2,
+      "PARKING ON FOOTPATH": 1,
+      "U TURN PROHIBITED": 2,
+      "CARRYING LENGHTY MATERIAL": 2
+    },
+    "vehicle_weights": {
+      "SCOOTER": 1.0,
+      "MOTOR CYCLE": 1.0,
+      "MOPED": 1.0,
+      "CAR": 1.5,
+      "JEEP": 1.5,
+      "PASSENGER AUTO": 1.6,
+      "VAN": 1.8,
+      "MAXI-CAB": 1.8,
+      "GOODS AUTO": 1.8,
+      "TEMPO": 2.0,
+      "SCHOOL VEHICLE": 2.0,
+      "MINI LORRY": 2.2,
+      "TRACTOR": 2.2,
+      "LGV": 2.5,
+      "TANKER": 2.8,
+      "HGV": 3.0,
+      "LORRY/GOODS VEHICLE": 3.0,
+      "PRIVATE BUS": 3.0,
+      "BUS (BMTC/KSRTC)": 3.0,
+      "TOURIST BUS": 3.0,
+      "FACTORY BUS": 3.0,
+      "OTHERS": 1.5
+    },
+    "time_weight_description": {
+      "morning_peak_7_11": 2.5,
+      "evening_peak_17_20": 2.5,
+      "daytime_offpeak_11_17": 1.8,
+      "evening_wind_down_20_23": 1.2,
+      "late_night_23_7": 0.6
+    }
+  },
+  "epi_methodology": {
+    "formula": "0.5 * volume_score + 0.3 * persistence_score + 0.2 * severity_score",
+    "volume_score": "normalized total CIS in zone",
+    "persistence_score": "normalized violations per active day",
+    "severity_score": "normalized max single-event CIS in zone"
+  }
+}

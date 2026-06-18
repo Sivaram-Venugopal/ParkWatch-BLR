@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParkWatch BLR — AI Parking Intelligence for Congestion Enforcement</title>
+<link rel="stylesheet" href="vendor/leaflet.css" />
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/chart.umd.js"></script>
+<script src="data.js"></script>
+<style>
+  :root {
+    --bg: #0f1419;
+    --bg-panel: #161d26;
+    --bg-panel-2: #1c2530;
+    --border: #2a3441;
+    --text: #e8edf2;
+    --text-dim: #8a96a3;
+    --accent: #ff7a45;
+    --accent-2: #ffb088;
+    --critical: #e24b4a;
+    --high: #ef9f27;
+    --medium: #378add;
+    --low: #5a6472;
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.5; }
+
+  header {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-panel);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), #c0392b);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 16px; color: white;
+  }
+  .brand-text h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.2px; }
+  .brand-text p { font-size: 12px; color: var(--text-dim); }
+  .meta-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill {
+    font-size: 11px; padding: 5px 10px; border-radius: 100px;
+    background: var(--bg-panel-2); border: 1px solid var(--border); color: var(--text-dim);
+  }
+
+  .layout { display: grid; grid-template-columns: 1fr; }
+  .stats-row {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+    background: var(--border); border-bottom: 1px solid var(--border);
+  }
+  .stat-card { background: var(--bg-panel); padding: 18px 22px; }
+  .stat-card .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .stat-card .value { font-size: 26px; font-weight: 700; }
+  .stat-card .sub { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+  .main-grid {
+    display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; padding: 16px;
+  }
+  @media (max-width: 1000px) { .main-grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px; display: flex; flex-direction: column;
+  }
+  .panel h2 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .panel .panel-sub { font-size: 11px; color: var(--text-dim); margin-bottom: 12px; }
+
+  #map { height: 460px; border-radius: 8px; }
+  .legend-row { display: flex; gap: 14px; margin-top: 10px; font-size: 11px; color: var(--text-dim); flex-wrap: wrap; }
+  .legend-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+
+  .zone-table-wrap { max-height: 460px; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; padding: 8px 10px; color: var(--text-dim); font-weight: 500; position: sticky; top: 0; background: var(--bg-panel); border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
+  td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .tier-badge { font-size: 10px; padding: 2px 8px; border-radius: 100px; font-weight: 600; }
+  .tier-Critical { background: rgba(226,75,74,0.18); color: #f08a89; }
+  .tier-High { background: rgba(239,159,39,0.18); color: #f3b65c; }
+  .tier-Medium { background: rgba(55,138,221,0.18); color: #7eb6ec; }
+  .tier-Low { background: rgba(90,100,114,0.25); color: #aab2bc; }
+  .loc-cell { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 0 16px 16px; }
+  @media (max-width: 1000px) { .charts-row { grid-template-columns: 1fr; } }
+  .chart-box { height: 260px; position: relative; }
+
+  .search-bar {
+    display: flex; gap: 8px; margin-bottom: 10px;
+  }
+  .search-bar input {
+    flex: 1; background: var(--bg-panel-2); border: 1px solid var(--border); color: var(--text);
+    padding: 8px 12px; border-radius: 6px; font-size: 13px;
+  }
+  .search-bar input:focus { outline: none; border-color: var(--accent); }
+  .search-bar select {
+    background: var(--bg-panel-2); border: 1px solid var(--border); color: var(--text);
+    padding: 8px 10px; border-radius: 6px; font-size: 12px;
+  }
+
+  .leaflet-popup-content-wrapper { background: var(--bg-panel-2); color: var(--text); border-radius: 8px; }
+  .leaflet-popup-tip { background: var(--bg-panel-2); }
+  .popup-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .popup-row { font-size: 11px; color: var(--text-dim); margin-bottom: 2px; }
+  .popup-epi { font-size: 20px; font-weight: 700; color: var(--accent-2); }
+
+  footer { padding: 16px 28px; font-size: 11px; color: var(--text-dim); border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">PW</div>
+    <div class="brand-text">
+      <h1>ParkWatch BLR</h1>
+      <p>AI-driven parking intelligence &amp; congestion impact scoring</p>
+    </div>
+  </div>
+  <div class="meta-pills" id="metaPills"></div>
+</header>
+
+<div class="stats-row" id="statsRow"></div>
+
+<div class="main-grid">
+  <div class="panel">
+    <h2>City-wide hotspot map</h2>
+    <p class="panel-sub">Critical and High priority zones, sized by Enforcement Priority Index (EPI). Click a marker for details.</p>
+    <div id="map"></div>
+    <div class="legend-row">
+      <span><span class="legend-dot" style="background:#e24b4a"></span>Critical (top 10%)</span>
+      <span><span class="legend-dot" style="background:#ef9f27"></span>High (next 20%)</span>
+      <span style="margin-left:auto" id="zoneCountLabel"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Enforcement priority leaderboard</h2>
+    <p class="panel-sub">Ranked by EPI — combines violation volume, daily persistence, and severity ceiling.</p>
+    <div class="search-bar">
+      <input type="text" id="zoneSearch" placeholder="Search by location or police station...">
+      <select id="tierFilter">
+        <option value="all">All tiers</option>
+        <option value="Critical">Critical</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+    </div>
+    <div class="zone-table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Location</th><th>Tier</th><th>EPI</th><th>Violations</th></tr>
+        </thead>
+        <tbody id="zoneTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="charts-row">
+  <div class="panel">
+    <h2>When does enforcement actually happen?</h2>
+    <p class="panel-sub">Detection volume by hour of day — note the night/early-morning concentration (see methodology note below).</p>
+    <div class="chart-box"><canvas id="hourChart"></canvas></div>
+  </div>
+  <div class="panel">
+    <h2>Violation type breakdown</h2>
+    <p class="panel-sub">Citywide count of congestion-relevant violation types.</p>
+    <div class="chart-box"><canvas id="violationChart"></canvas></div>
+  </div>
+</div>
+
+<div class="charts-row">
+  <div class="panel">
+    <h2>Top police stations by total impact (CIS)</h2>
+    <p class="panel-sub">Sum of Congestion Impact Score across all violations in jurisdiction.</p>
+    <div class="chart-box"><canvas id="stationChart"></canvas></div>
+  </div>
+  <div class="panel">
+    <h2>Vehicle type distribution</h2>
+    <p class="panel-sub">Which vehicle types are most frequently flagged.</p>
+    <div class="chart-box"><canvas id="vehicleChart"></canvas></div>
+  </div>
+</div>
+
+<div class="panel" style="margin: 0 16px 16px;">
+  <h2>Methodology notes — read before judging the numbers</h2>
+  <p class="panel-sub" style="margin-bottom:10px">Three honest caveats about what this data can and cannot show.</p>
+  <div style="font-size:12px; color:var(--text-dim); display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px;">
+    <div>
+      <strong style="color:var(--text)">No ground-truth congestion data</strong><br>
+      The raw dataset contains violation records only — no road speed, flow, or volume measurements. The Congestion Impact Score (CIS) is a transparent proxy built from violation severity, vehicle footprint, and time-of-day traffic weight, not a measured delay.
+    </div>
+    <div>
+      <strong style="color:var(--text)">Enforcement is night-skewed</strong><br>
+      ~75% of detections occur between 9pm-8am, reflecting when enforcement devices are active, not when illegal parking peaks. The time-of-day weight in CIS partially corrects for this, but daytime parking impact is likely undercounted in raw volume.
+    </div>
+    <div>
+      <strong style="color:var(--text)">Grid zoning, not density clustering</strong><br>
+      DBSCAN clustering was tested and rejected — Bengaluru's dense old-city core chained into one mega-cluster covering 55% of all violations. Fixed 150m grid cells were used instead for stable, patrol-beat-sized zones.
+    </div>
+  </div>
+</div>
+
+<footer>
+  ParkWatch BLR — prototype dashboard for Tata Technologies InnoVent submission. Data: Jan&ndash;May 2024 anonymized police violation records, Bengaluru Traffic Police. All zone boundaries and scores are derived; see solution documentation for full methodology.
+</footer>
+
+<script>
+const TIER_COLOR = { Critical: '#e24b4a', High: '#ef9f27', Medium: '#378add', Low: '#5a6472' };
+
+// ---------- Header stat cards ----------
+function renderStats() {
+  const m = METADATA;
+  const stats = [
+    { label: 'Records analyzed', value: m.data_summary.after_cleaning.toLocaleString(), sub: `of ${m.data_summary.raw_rows.toLocaleString()} raw rows` },
+    { label: 'Hotspot zones', value: m.data_summary.n_qualifying_hotspot_zones?.toLocaleString() ?? '2,293', sub: `from ${m.data_summary.n_grid_cells_touched?.toLocaleString() ?? ''} grid cells` },
+    { label: 'Police stations', value: m.data_summary.n_police_stations, sub: 'jurisdictions covered' },
+    { label: 'Model accuracy', value: `R² ${m.model_performance.r2_score}`, sub: `${m.model_performance.best_model}, MAE ${m.model_performance.mae}` },
+    { label: 'Date range', value: '5 months', sub: `${m.data_summary.date_range_start} to ${m.data_summary.date_range_end}` },
+  ];
+  document.getElementById('statsRow').innerHTML = stats.map(s => `
+    <div class="stat-card">
+      <div class="label">${s.label}</div>
+      <div class="value">${s.value}</div>
+      <div class="sub">${s.sub}</div>
+    </div>`).join('');
+
+  document.getElementById('metaPills').innerHTML = `
+    <span class="pill">CIS methodology v1</span>
+    <span class="pill">Grid-zoned (150m)</span>
+    <span class="pill">Random Forest model</span>
+  `;
+}
+
+// ---------- Map ----------
+function renderMap() {
+  const map = L.map('map', { zoomControl: true }).setView([12.97, 77.59], 11);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    subdomains: 'abcd', maxZoom: 19
+  }).addTo(map);
+
+  ZONES_PRIORITY.forEach(z => {
+    const radius = 4 + Math.sqrt(z.EPI) * 1.6;
+    const color = TIER_COLOR[z.priority_tier] || '#888';
+    const marker = L.circleMarker([z.centroid_lat, z.centroid_lon], {
+      radius, color, fillColor: color, fillOpacity: 0.55, weight: 1
+    }).addTo(map);
+    marker.bindPopup(`
+      <div class="popup-title">${z.sample_location.split(',').slice(0,3).join(',')}</div>
+      <div class="popup-epi">EPI ${z.EPI}</div>
+      <div class="popup-row">Tier: ${z.priority_tier} &middot; Rank #${z.priority_rank}</div>
+      <div class="popup-row">${z.total_violations.toLocaleString()} violations &middot; ${z.n_unique_vehicles.toLocaleString()} vehicles</div>
+      <div class="popup-row">Dominant: ${z.dominant_violation_type} (${z.dominant_vehicle_type})</div>
+      <div class="popup-row">Station: ${z.dominant_police_station} &middot; Active ${z.n_days_active} days</div>
+    `);
+  });
+}
+
+// ---------- Zone leaderboard table ----------
+let currentZones = ZONES_ALL.slice(0, 200);
+function renderTable(zones) {
+  const tbody = document.getElementById('zoneTableBody');
+  tbody.innerHTML = zones.slice(0, 200).map(z => `
+    <tr>
+      <td>${z.priority_rank}</td>
+      <td class="loc-cell" title="${z.sample_location}">${z.sample_location.split(',').slice(0,2).join(',')}</td>
+      <td><span class="tier-badge tier-${z.priority_tier}">${z.priority_tier}</span></td>
+      <td>${z.EPI}</td>
+      <td>${z.total_violations.toLocaleString()}</td>
+    </tr>
+  `).join('');
+}
+
+function applyFilters() {
+  const q = document.getElementById('zoneSearch').value.toLowerCase();
+  const tier = document.getElementById('tierFilter').value;
+  let filtered = ZONES_ALL;
+  if (tier !== 'all') filtered = filtered.filter(z => z.priority_tier === tier);
+  if (q) filtered = filtered.filter(z =>
+    z.sample_location.toLowerCase().includes(q) ||
+    z.dominant_police_station.toLowerCase().includes(q)
+  );
+  renderTable(filtered);
+}
+document.getElementById('zoneSearch').addEventListener('input', applyFilters);
+document.getElementById('tierFilter').addEventListener('change', applyFilters);
+
+// ---------- Charts ----------
+function renderHourChart() {
+  const hours = Array.from({length:24}, (_,i) => i);
+  const totals = hours.map(h => {
+    let sum = 0;
+    for (const dow in HOUR_DOW) sum += HOUR_DOW[dow][h] || 0;
+    return Math.round(sum);
+  });
+  new Chart(document.getElementById('hourChart'), {
+    type: 'bar',
+    data: { labels: hours.map(h => h + ':00'), datasets: [{
+      data: totals, backgroundColor: hours.map(h => (h>=21||h<8) ? '#e24b4a' : '#378add'),
+      borderRadius: 3
+    }]},
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#8a96a3', font: {size: 10} }, grid: { display: false } },
+        y: { ticks: { color: '#8a96a3', font: {size: 10} }, grid: { color: 'rgba(255,255,255,0.05)' } }
+      },
+      maintainAspectRatio: false
+    }
+  });
+}
+
+function renderViolationChart() {
+  const top = VIOLATION_BREAKDOWN.slice(0, 8);
+  new Chart(document.getElementById('violationChart'), {
+    type: 'bar',
+    data: { labels: top.map(v => v.violation_type), datasets: [{
+      data: top.map(v => v.count), backgroundColor: '#ff7a45', borderRadius: 3
+    }]},
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#8a96a3', font: {size: 10} }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        y: { ticks: { color: '#8a96a3', font: {size: 9} }, grid: { display: false } }
+      },
+      maintainAspectRatio: false
+    }
+  });
+}
+
+function renderStationChart() {
+  const top = STATION_SUMMARY.slice(0, 10);
+  new Chart(document.getElementById('stationChart'), {
+    type: 'bar',
+    data: { labels: top.map(s => s.police_station), datasets: [{
+      data: top.map(s => Math.round(s.total_CIS)), backgroundColor: '#ffb088', borderRadius: 3
+    }]},
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#8a96a3', font: {size: 10} }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        y: { ticks: { color: '#8a96a3', font: {size: 9} }, grid: { display: false } }
+      },
+      maintainAspectRatio: false
+    }
+  });
+}
+
+function renderVehicleChart() {
+  const top = VEHICLE_BREAKDOWN.slice(0, 7);
+  const rest = VEHICLE_BREAKDOWN.slice(7).reduce((a,b) => a + b.count, 0);
+  const labels = [...top.map(v => v.vehicle_type), 'Others'];
+  const data = [...top.map(v => v.count), rest];
+  const colors = ['#ff7a45','#ffb088','#378add','#7eb6ec','#ef9f27','#f3b65c','#5a6472','#8a96a3'];
+  new Chart(document.getElementById('vehicleChart'), {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] },
+    options: {
+      plugins: { legend: { position: 'right', labels: { color: '#8a96a3', font: {size: 10}, boxWidth: 10 } } },
+      maintainAspectRatio: false
+    }
+  });
+}
+
+renderStats();
+document.getElementById('zoneCountLabel').textContent =
+  `${ZONES_PRIORITY.length} priority zones shown of ${ZONES_ALL.length} total`;
+renderMap();
+renderTable(currentZones);
+renderHourChart();
+renderViolationChart();
+renderStationChart();
+renderVehicleChart();
+</script>
+
+</body>
+</html>

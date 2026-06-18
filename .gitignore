@@ -1,0 +1,2 @@
+# Exclude the raw 110MB dataset (exceeds GitHub's file size limit)
+data/jan_to_may_police_violation_anonymized791b166.csv

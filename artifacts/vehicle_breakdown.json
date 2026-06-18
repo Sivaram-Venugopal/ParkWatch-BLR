@@ -1,0 +1,90 @@
+[
+  {
+    "vehicle_type":"SCOOTER",
+    "count":76689
+  },
+  {
+    "vehicle_type":"CAR",
+    "count":75334
+  },
+  {
+    "vehicle_type":"MOTOR CYCLE",
+    "count":32895
+  },
+  {
+    "vehicle_type":"PASSENGER AUTO",
+    "count":29187
+  },
+  {
+    "vehicle_type":"MAXI-CAB",
+    "count":9613
+  },
+  {
+    "vehicle_type":"LGV",
+    "count":6670
+  },
+  {
+    "vehicle_type":"GOODS AUTO",
+    "count":2336
+  },
+  {
+    "vehicle_type":"MOPED",
+    "count":1803
+  },
+  {
+    "vehicle_type":"PRIVATE BUS",
+    "count":1237
+  },
+  {
+    "vehicle_type":"VAN",
+    "count":1210
+  },
+  {
+    "vehicle_type":"TEMPO",
+    "count":1094
+  },
+  {
+    "vehicle_type":"HGV",
+    "count":912
+  },
+  {
+    "vehicle_type":"LORRY\/GOODS VEHICLE",
+    "count":866
+  },
+  {
+    "vehicle_type":"BUS (BMTC\/KSRTC)",
+    "count":785
+  },
+  {
+    "vehicle_type":"JEEP",
+    "count":762
+  },
+  {
+    "vehicle_type":"OTHERS",
+    "count":712
+  },
+  {
+    "vehicle_type":"TOURIST BUS",
+    "count":294
+  },
+  {
+    "vehicle_type":"SCHOOL VEHICLE",
+    "count":289
+  },
+  {
+    "vehicle_type":"TANKER",
+    "count":205
+  },
+  {
+    "vehicle_type":"FACTORY BUS",
+    "count":192
+  },
+  {
+    "vehicle_type":"MINI LORRY",
+    "count":150
+  },
+  {
+    "vehicle_type":"TRACTOR",
+    "count":39
+  }
+]

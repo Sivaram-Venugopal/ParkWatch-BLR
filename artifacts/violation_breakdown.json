@@ -1,0 +1,102 @@
+[
+  {
+    "violation_type":"WRONG PARKING",
+    "count":131445
+  },
+  {
+    "violation_type":"NO PARKING",
+    "count":116132
+  },
+  {
+    "violation_type":"PARKING IN A MAIN ROAD",
+    "count":19474
+  },
+  {
+    "violation_type":"DEFECTIVE NUMBER PLATE",
+    "count":6019
+  },
+  {
+    "violation_type":"PARKING ON FOOTPATH",
+    "count":3023
+  },
+  {
+    "violation_type":"PARKING NEAR BUSTOP\/SCHOOL\/HOSPITAL ETC",
+    "count":1866
+  },
+  {
+    "violation_type":"DOUBLE PARKING",
+    "count":1582
+  },
+  {
+    "violation_type":"PARKING NEAR ROAD CROSSING",
+    "count":1318
+  },
+  {
+    "violation_type":"REFUSE TO GO FOR HIRE",
+    "count":617
+  },
+  {
+    "violation_type":"PARKING NEAR TRAFFIC LIGHT OR ZEBRA CROSS",
+    "count":389
+  },
+  {
+    "violation_type":"PARKING OPPOSITE TO ANOTHER PARKED VEHICLE",
+    "count":349
+  },
+  {
+    "violation_type":"USING BLACK FILM\/OTHER MATERIALS",
+    "count":205
+  },
+  {
+    "violation_type":"DEMANDING EXCESS FARE",
+    "count":177
+  },
+  {
+    "violation_type":"PARKING OTHER THAN BUS STOP",
+    "count":147
+  },
+  {
+    "violation_type":"WITHOUT SIDE MIRROR",
+    "count":40
+  },
+  {
+    "violation_type":"H T V PROHIBITED",
+    "count":25
+  },
+  {
+    "violation_type":"OBSTRUCTING DRIVER",
+    "count":14
+  },
+  {
+    "violation_type":"AGAINST ONE WAY\/NO ENTRY",
+    "count":9
+  },
+  {
+    "violation_type":"FAIL TO USE SAFETY BELTS",
+    "count":4
+  },
+  {
+    "violation_type":"RIDER NOT WEARING HELMET",
+    "count":2
+  },
+  {
+    "violation_type":"2W\/3W - USING MOBILE PHONE",
+    "count":2
+  },
+  {
+    "violation_type":"VIOLATING LANE DISIPLINE",
+    "count":2
+  },
+  {
+    "violation_type":"OTHER - USING MOBILE PHONE",
+    "count":1
+  },
+  {
+    "violation_type":"CARRYING LENGHTY MATERIAL",
+    "count":1
+  },
+  {
+    "violation_type":"JUMPING TRAFFIC SIGNAL",
+    "count":1
+  }
+]
