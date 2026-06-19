@@ -208,6 +208,30 @@
         <div id="mlNote" style="font-size: 11px; font-style: italic; color: var(--text-dim); border-top: 1px solid var(--border); padding-top: 8px; margin-bottom: 5px; line-height: 1.4;"></div>
         <div id="weatherNote" style="font-size: 11px; font-style: italic; color: var(--text-dim); line-height: 1.4;"></div>
     </div>
+
+    <!-- Feature B: Chronic Offender Distribution Panel -->
+    <div class="chronic-offender-panel" style="background: #1c2530; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid var(--border);">
+        <h4 style="font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px;">🚗 Chronic Offender Distribution</h4>
+        <p style="font-size: 11px; color: var(--text-dim); margin-bottom: 10px; line-height: 1.4;" id="chronicOffenderText">
+            Loading...
+        </p>
+        <div style="position: relative; height: 180px; width: 100%;">
+            <canvas id="lorenzCurveChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Feature A: What-If Enforcement Simulator Panel -->
+    <div class="what-if-simulator" style="background: #1c2530; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid var(--border);">
+        <h4 style="font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px;">💡 What-If Enforcement Simulator</h4>
+        <label for="deterrenceSlider" style="font-size: 11px; color: var(--text-dim);">
+            Assumed deterrence rate: <span id="deterrenceValue" style="font-weight:bold; color:var(--accent);">50</span>%
+        </label>
+        <input type="range" id="deterrenceSlider" min="20" max="80" value="50" style="width: 100%; margin-top: 6px;">
+        <p style="font-size: 10px; font-style: italic; color: var(--text-dim); margin-top: 4px; line-height: 1.3;">
+            Illustrative assumption, not a measured value — no published deterrence-rate study exists for Indian urban parking. Adjust to see projection changes.
+        </p>
+        <div id="whatIfResult" style="font-size: 12px; font-weight: bold; margin-top: 10px; color: var(--accent-2); line-height: 1.4;"></div>
+    </div>
   </div>
 </div>
 
@@ -518,6 +542,95 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('mlNote').innerText = METADATA.model_performance.anti_leakage_note || 'Advanced spatio-temporal forecasting model.';
         document.getElementById('weatherNote').innerText = METADATA.model_performance.weather_proxy_note || '';
         document.getElementById('intersectionCount').innerText = METADATA.data_summary.n_intersection_chokepoints || 0;
+    }
+});
+
+// ---------- Feature B: Chronic Offender Lorenz Chart ----------
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof CHRONIC_OFFENDER_DATA !== 'undefined') {
+        const tier = CHRONIC_OFFENDER_DATA.tier_breakdown;
+        const lorenzData = CHRONIC_OFFENDER_DATA.lorenz_curve_data;
+        
+        // Set text using verified numbers
+        document.getElementById('chronicOffenderText').innerText = 
+            `The top 20% of flagged vehicles account for ${tier.top_20_pct_cis_share}% of total congestion impact. 
+            ${tier.chronic_offenders_3_plus.count} chronic offenders (3+ violations, ${tier.chronic_offenders_3_plus.population_share_pct}% of vehicles) cause ${tier.chronic_offenders_3_plus.cis_share_pct}% of impact. 
+            This suggests enforcement could complement zone-based patrolling with targeted vehicle-based follow-up.`;
+
+        // Render Lorenz Curve
+        const ctx = document.getElementById('lorenzCurveChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Cumulative CIS Share',
+                    data: lorenzData.map(p => ({x: p.x, y: p.y})),
+                    borderColor: '#b05ceb',
+                    backgroundColor: 'rgba(176, 92, 235, 0.15)',
+                    fill: true,
+                    tension: 0.1,
+                    borderWidth: 2,
+                    pointRadius: 3
+                }, {
+                    label: 'Perfect Equality',
+                    data: [{x:0, y:0}, {x:100, y:100}],
+                    borderColor: 'rgba(255, 255, 255, 0.25)',
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#8a96a3', font: { size: 9 } }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        title: { display: true, text: '% of Vehicles (sorted)', color: '#8a96a3', font: { size: 9 } },
+                        max: 100, min: 0,
+                        ticks: { color: '#8a96a3', font: { size: 9 } },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    y: {
+                        type: 'linear',
+                        title: { display: true, text: '% of Cumulative CIS', color: '#8a96a3', font: { size: 9 } },
+                        max: 100, min: 0,
+                        ticks: { color: '#8a96a3', font: { size: 9 } },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    }
+                }
+            }
+        });
+    }
+});
+
+// ---------- Feature A: What-If Enforcement Simulator ----------
+function calculateWhatIf() {
+    if (typeof ZONES_PRIORITY === 'undefined') return;
+    
+    const detRate = document.getElementById('deterrenceSlider').value;
+    document.getElementById('deterrenceValue').innerText = detRate;
+    
+    // Sum total CIS of Top 10 Critical Zones
+    const top10Zones = ZONES_PRIORITY.filter(z => z.priority_tier === 'Critical').slice(0, 10);
+    const totalTop10CIS = top10Zones.reduce((sum, z) => sum + z.total_CIS, 0);
+    
+    const projectedReduction = Math.round(totalTop10CIS * (detRate / 100));
+    
+    document.getElementById('whatIfResult').innerHTML = 
+        `If BTP deploys 3 tow-trucks to the Top 10 Critical Zones during peak hours, at an assumed ${detRate}% deterrence rate: projected CIS reduction = <span style="color:#e24b4a;">${projectedReduction.toLocaleString()}</span> delay-minutes/week.`;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const slider = document.getElementById('deterrenceSlider');
+    if (slider) {
+        slider.addEventListener('input', calculateWhatIf);
+        calculateWhatIf(); // Initial render
     }
 });
 </script>

@@ -428,6 +428,56 @@ model_df = clustered.groupby([
     dominant_vehicle=('vehicle_type', lambda x: x.mode().iat[0] if not x.mode().empty else 'OTHERS')
 ).reset_index()
 
+# Group by vehicle_number to analyze chronic offenders
+vehicle_stats = clustered.groupby('vehicle_number').agg(
+    n_violations=('CIS', 'count'),
+    total_cis=('CIS', 'sum'),
+    zones_hit=('location', lambda x: list(x.unique())[:5]) # Top 5 distinct locations
+).reset_index()
+
+vehicle_stats = vehicle_stats.sort_values('total_cis', ascending=False).reset_index(drop=True)
+total_cis_sum = vehicle_stats['total_cis'].sum()
+
+# Calculate cumulative CIS share for Lorenz curve
+def get_cumulative_share(percentile):
+    idx = int(len(vehicle_stats) * (percentile / 100.0))
+    if idx == 0: return 0.0
+    return round((vehicle_stats['total_cis'].iloc[:idx].sum() / total_cis_sum) * 100, 2)
+
+# Calculate verified tier metrics
+tier_breakdown = {
+    "top_1_pct_cis_share": get_cumulative_share(1),
+    "top_5_pct_cis_share": get_cumulative_share(5),
+    "top_10_pct_cis_share": get_cumulative_share(10),
+    "top_20_pct_cis_share": get_cumulative_share(20), # This will be ~52.4%
+    "chronic_offenders_3_plus": {
+        "count": int((vehicle_stats['n_violations'] >= 3).sum()),
+        "population_share_pct": round((vehicle_stats['n_violations'] >= 3).sum() / len(vehicle_stats) * 100, 2),
+        "cis_share_pct": round(vehicle_stats[vehicle_stats['n_violations'] >= 3]['total_cis'].sum() / total_cis_sum * 100, 2)
+    },
+    "total_unique_vehicles": int(len(vehicle_stats))
+}
+
+# Prepare data points for frontend Lorenz chart
+lorenz_points = [
+    {"x": 0, "y": 0},
+    {"x": 1, "y": get_cumulative_share(1)},
+    {"x": 5, "y": get_cumulative_share(5)},
+    {"x": 10, "y": get_cumulative_share(10)},
+    {"x": 20, "y": get_cumulative_share(20)},
+    {"x": 50, "y": get_cumulative_share(50)},
+    {"x": 100, "y": 100.0}
+]
+
+# Get top 20 individual chronic offenders for drill-down table
+top_chronic_offenders = vehicle_stats[vehicle_stats['n_violations'] >= 3].head(20).to_dict(orient='records')
+
+chronic_analysis = {
+    "tier_breakdown": tier_breakdown,
+    "lorenz_curve_data": lorenz_points,
+    "top_chronic_offenders": top_chronic_offenders
+}
+
 # Delete clustered and all large temporary variables to free memory
 del clustered
 del hourly_dow
@@ -526,6 +576,20 @@ print("  Feature importances:\n", importances.to_string())
 best_model_name = "Random Forest Regressor (Zone-Hour Risk Forecaster)"
 best_r2 = rf_r2_mean
 best_mae = rf_mae_mean
+
+# ─────────────────────────────────────────────────────────────
+# STAGE 6.5: CHRONIC OFFENDER ANALYSIS
+# ─────────────────────────────────────────────────────────────
+print("Stage 6.5: Analyzing chronic offenders (Lorenz distribution)...")
+
+with open(f"{OUT_DIR}/chronic_offender_analysis.json", "w") as f:
+    json.dump(chronic_analysis, f, indent=2)
+
+# Append to data.js for dashboard consumption
+with open("dashboard/data.js", "a") as f_js:
+    f_js.write(f"\nconst CHRONIC_OFFENDER_DATA = {json.dumps(chronic_analysis)};\n")
+    
+print(f"  Chronic offender analysis complete. Top 20% vehicles cause {tier_breakdown['top_20_pct_cis_share']}% of CIS.")
 
 # ─────────────────────────────────────────────────────────────
 # STAGE 7: EXPORT ARTIFACTS FOR DASHBOARD

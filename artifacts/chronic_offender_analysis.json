@@ -1,0 +1,271 @@
+{
+  "tier_breakdown": {
+    "top_1_pct_cis_share": 8.01,
+    "top_5_pct_cis_share": 22.8,
+    "top_10_pct_cis_share": 35.27,
+    "top_20_pct_cis_share": 52.38,
+    "chronic_offenders_3_plus": {
+      "count": 8081,
+      "population_share_pct": 4.1,
+      "cis_share_pct": 13.88
+    },
+    "total_unique_vehicles": 197162
+  },
+  "lorenz_curve_data": [
+    {
+      "x": 0,
+      "y": 0
+    },
+    {
+      "x": 1,
+      "y": 8.01
+    },
+    {
+      "x": 5,
+      "y": 22.8
+    },
+    {
+      "x": 10,
+      "y": 35.27
+    },
+    {
+      "x": 20,
+      "y": 52.38
+    },
+    {
+      "x": 50,
+      "y": 79.43
+    },
+    {
+      "x": 100,
+      "y": 100.0
+    }
+  ],
+  "top_chronic_offenders": [
+    {
+      "vehicle_number": "FKN00GL63934",
+      "n_violations": 11,
+      "total_cis": 193.75,
+      "zones_hit": [
+        "Mysore Road, City Market Circle, Bengaluru, Karnataka. Pin-560002 (India)",
+        "BGS Flyover, Sri Krishna Rajendra Market, Chickpete, Bengaluru, Karnataka. Pin-560002 (India)",
+        "Dental College Road, Sri Krishna Rajendra Market, Chickpete, Bengaluru, Karnataka. Pin-560002 (India)",
+        "Mysore Road, Sri Krishna Rajendra Market, Chickpete, Bengaluru, Karnataka. Pin-560002 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL9771",
+      "n_violations": 37,
+      "total_cis": 189.0,
+      "zones_hit": [
+        "Vajreshwari Road, R Subanna Circle, Gandhi Nagar, Bengaluru, Karnataka. Pin-560001 (India)",
+        "6th Cross Road, Gandhinagar, Nehru Nagar, Bengaluru Central City Corporation, Bengaluru, Bangalore North, Bengaluru Urban, Karnataka, 560009, India",
+        "1st Main Road, Sagar Theatre Junction, Gandhi Nagar, Bengaluru, Karnataka. Pin-560009 (India)",
+        "5th Main Road, R Subanna Circle, Gandhi Nagar, Bengaluru, Karnataka. Pin-560001 (India)",
+        "Vajreshwari Road, Railway Officers Enclave, Gandhi Nagar, Bengaluru, Karnataka. Pin-560009 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL13448",
+      "n_violations": 12,
+      "total_cis": 186.75,
+      "zones_hit": [
+        "Mysore Road, Chanda Nagar, Sultanpete, Bengaluru, Karnataka. Pin-560053 (India)",
+        "Dental College Road, Sri Krishna Rajendra Market, Chickpete, Bengaluru, Karnataka. Pin-560002 (India)",
+        "Mysore Road, Sri Krishna Rajendra Market, Chickpete, Bengaluru, Karnataka. Pin-560002 (India)",
+        "Narasimha Raj Wadiyar Road, City Market Circle, Bengaluru, Karnataka. Pin-560002 (India)",
+        "BGS Flyover, Sri Krishna Rajendra Market, Chickpete, Bengaluru, Karnataka. Pin-560002 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL50810",
+      "n_violations": 11,
+      "total_cis": 185.0,
+      "zones_hit": [
+        "Mysore Road, City Market Circle, Bengaluru, Karnataka. Pin-560002 (India)",
+        "Mysore Road, Sri Krishna Rajendra Market, Chickpete, Bengaluru, Karnataka. Pin-560002 (India)",
+        "Dental College Road, Sri Krishna Rajendra Market, Chickpete, Bengaluru, Karnataka. Pin-560002 (India)",
+        "BGS Flyover, City Market Circle, Bengaluru, Karnataka. Pin-560002 (India)",
+        "BGS Flyover, Sri Krishna Rajendra Market, Chickpete, Bengaluru, Karnataka. Pin-560002 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL26002",
+      "n_violations": 11,
+      "total_cis": 177.75,
+      "zones_hit": [
+        "Mysore Road, Sri Krishna Rajendra Market, Chickpete, Bengaluru, Karnataka. Pin-560002 (India)",
+        "BGS Flyover, City Market Circle, Bengaluru, Karnataka. Pin-560002 (India)",
+        "Dental College Road, Sri Krishna Rajendra Market, Chickpete, Bengaluru, Karnataka. Pin-560002 (India)",
+        "Mysore Road, Chanda Nagar, Sultanpete, Bengaluru, Karnataka. Pin-560053 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL36411",
+      "n_violations": 8,
+      "total_cis": 168.3,
+      "zones_hit": [
+        "Hosur Road, Singasandra Industrial Estate, Begur, Bengaluru, Karnataka. Pin-560068 (India)",
+        "Blue Chip Road, Singasandra, Bengaluru, Karnataka. Pin-560068 (India)",
+        "Manipal County Road, Shree Nivas, AECS Block C, Begur, Bengaluru, Karnataka. Pin-560068 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL3514",
+      "n_violations": 28,
+      "total_cis": 164.32,
+      "zones_hit": [
+        "Haji Ibrahim Sahib Road, Sri Nagamma Devi Circle, Sivanchetti Gardens, Bengaluru, Karnataka. Pin-560042 (India)",
+        "Kamaraj Road, Commercial Street Market, Shivajinagar, Bengaluru Central City Corporation, Bengaluru, Bangalore North, Bengaluru Urban, Karnataka, 560001, India",
+        "Dickenson Road, Sri Nagamma Devi Circle, Sivanchetti Gardens, Bengaluru, Karnataka. Pin-560042 (India)",
+        "Kamaraj Road, Sri Nagamma Devi Circle, Sivanchetti Gardens, Bengaluru, Karnataka. Pin-560042 (India)",
+        "Malabar Jewellery, 183, Dickenson Road, Commercial Street Market, Shivajinagar, Bengaluru Central City Corporation, Bengaluru, Bangalore North, Bengaluru Urban, Karnataka, 560042, India"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL41594",
+      "n_violations": 13,
+      "total_cis": 163.5,
+      "zones_hit": [
+        "Hosur Road, Ozone Manay Tech Park, Garvebhavi Palya, Bengaluru, Karnataka. Pin-560068 (India)",
+        "Hosur Road, Metro Urbano, Muni Reddy Layout, Garvebhavi Palya, Bengaluru, Karnataka. Pin-560068 (India)",
+        "7th Cross Road, Chikka Biddappa Layout, Garvebhavi Palya, Bengaluru, Karnataka. Pin-560068 (India)",
+        "11th Cross Road, Metro Urbano, Muni Reddy Layout, Garvebhavi Palya, Bengaluru, Karnataka. Pin-560068 (India)",
+        "Hosur Road, Gangotri SLV Meadows, Krishna Reddy Industrial Area, Garvebhavi Palya, Bengaluru, Karnataka. Pin-560068 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL28038",
+      "n_violations": 11,
+      "total_cis": 158.4,
+      "zones_hit": [
+        "Outer Ring Road, Sharadamma Layout, Munnekolala, Bengaluru, Karnataka. Pin-560037 (India)",
+        NaN,
+        "SGR Dental College Road, Sharadamma Layout, Munnekolala, Bengaluru, Karnataka. Pin-560037 (India)",
+        "Outer Ring Road, Soulspace Paradigm, Marathahalli Village, Marathahalli, Bengaluru, Karnataka. Pin-560037 (India)",
+        "Outer Ring Road, Salarpuria Sattva Supreme, Marathahalli Village, Marathahalli, Bengaluru, Karnataka. Pin-560037 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL7952",
+      "n_violations": 15,
+      "total_cis": 156.60000000000002,
+      "zones_hit": [
+        "1st Main Road, Ramaiah Reddy Layout, Singasandra, Bengaluru, Karnataka. Pin-560068 (India)",
+        "Chikka Begur Main Road, Ambedkar Nagar, Singasandra, Bengaluru, Karnataka. Pin-560068 (India)",
+        "2nd Main Road, AECS Layout B Block, Singasandra, Bengaluru, Karnataka. Pin-560068 (India)",
+        "12th Main Road, Wellington Layout, Singasandra, Bengaluru, Karnataka. Pin-560068 (India)",
+        NaN
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL40724",
+      "n_violations": 8,
+      "total_cis": 151.0,
+      "zones_hit": [
+        "MBT Road, Devasandra Junction, KR Puram, Bengaluru, Karnataka. Pin-560036 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL62141",
+      "n_violations": 9,
+      "total_cis": 150.0,
+      "zones_hit": [
+        "Dental College Road, Sri Krishna Rajendra Market, Chickpete, Bengaluru, Karnataka. Pin-560002 (India)",
+        "Mysore Road, Sri Krishna Rajendra Market, Chickpete, Bengaluru, Karnataka. Pin-560002 (India)",
+        "BGS Flyover, City Market Circle, Bengaluru, Karnataka. Pin-560002 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL7591",
+      "n_violations": 7,
+      "total_cis": 146.25,
+      "zones_hit": [
+        "Hosur Road, Ramaiah Reddy Layout, Singasandra, Bengaluru, Karnataka. Pin-560068 (India)",
+        "Hosur Road, Ozone Manay Tech Park, Garvebhavi Palya, Bengaluru, Karnataka. Pin-560068 (India)",
+        "Hosur Road, GarvebhaviPalya, Garvebavi Palya, Bengaluru South City Corporation, Bengaluru, Bangalore South, Bengaluru Urban, Karnataka, 560068, India",
+        "Savi Forex and Tours Private Limited, 46/2, Service Road, Bandepalya, Bengaluru South City Corporation, Bengaluru, Bangalore South, Bengaluru Urban, Karnataka, 560068, India",
+        "Chikka Begur Main Road, Polisappa Layout, Singasandra, Bengaluru, Karnataka. Pin-560068 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL16746",
+      "n_violations": 17,
+      "total_cis": 139.20000000000002,
+      "zones_hit": [
+        "Hosur Road, Ozone Manay Tech Park, Garvebhavi Palya, Bengaluru, Karnataka. Pin-560068 (India)",
+        "Hosur Road, Singasandra Industrial Estate, Begur, Bengaluru, Karnataka. Pin-560068 (India)",
+        "Hosur Road, Total Environment Greensleeves, HAL Layout, Bengaluru, Karnataka. Pin-560068 (India)",
+        "Hosur Road, Zed Enclave, HAL Layout, Bengaluru, Karnataka. Pin-560068 (India)",
+        "11th Main Road, Filor House, AECS Layout A Block, Kudlu, Bengaluru, Karnataka. Pin-560068 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL31710",
+      "n_violations": 10,
+      "total_cis": 126.9,
+      "zones_hit": [
+        "Hosur Road, Kudlu Gate, Singasandra, Bengaluru, Karnataka. Pin-560068 (India)",
+        "Hosur Road, Gangotri SLV Meadows, Krishna Reddy Industrial Area, Garvebhavi Palya, Bengaluru, Karnataka. Pin-560068 (India)",
+        "Hosur Road, Krishna Reddy Industrial Area, Garvebhavi Palya, Bengaluru, Karnataka. Pin-560068 (India)",
+        "Hosur Road, GarvebhaviPalya, Garvebavi Palya, Bengaluru South City Corporation, Bengaluru, Bangalore South, Bengaluru Urban, Karnataka, 560068, India",
+        "11th Cross Road, Ozone Manay Tech Park, Garvebhavi Palya, Bengaluru, Karnataka. Pin-560068 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL18794",
+      "n_violations": 21,
+      "total_cis": 124.5,
+      "zones_hit": [
+        "3rd Main Road, Sri Kanakadasa Circle, Gandhi Nagar, Bengaluru, Karnataka. Pin-560009 (India)",
+        "Y Ramachandra Road, Sri Kanakadasa Circle, Gandhi Nagar, Bengaluru, Karnataka. Pin-560009 (India)",
+        "4th Main Road, Sri Kanakadasa Circle, Gandhi Nagar, Bengaluru, Karnataka. Pin-560009 (India)",
+        "Y Ramachandra Road, Kempe Gowda Circle, Gandhi Nagar, Bengaluru, Karnataka. Pin-560009 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL9852",
+      "n_violations": 21,
+      "total_cis": 122.88,
+      "zones_hit": [
+        "Kamaraj Road, Sri Nagamma Devi Circle, Sivanchetti Gardens, Bengaluru, Karnataka. Pin-560042 (India)",
+        "Haji Ibrahim Sahib Road, Sri Nagamma Devi Circle, Sivanchetti Gardens, Bengaluru, Karnataka. Pin-560042 (India)",
+        NaN
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL46186",
+      "n_violations": 8,
+      "total_cis": 121.5,
+      "zones_hit": [
+        "17th Main Road, KPTCL Quarters, Block 2, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)",
+        "P&T Road, KPTCL Quarters, Block 2, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)",
+        "P&T Road, BSNL Quarters, Block 2, Rajaji Nagar, Bengaluru, Karnataka. Pin-560010 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL20170",
+      "n_violations": 14,
+      "total_cis": 121.2,
+      "zones_hit": [
+        "Laggere Service Road, Narasimhaswamy Layout, Laggere, Bengaluru, Karnataka. Pin-560058 (India)",
+        "Dr Rajkumar Puniya Bhoomi Road, Narasimhaswamy Layout, Laggere, Bengaluru, Karnataka. Pin-560058 (India)",
+        "1st Main Road, Malleshwar Layout, Laggere, Bengaluru, Karnataka. Pin-560058 (India)",
+        "Freedom Fighter Ward, Bengaluru West City Corporation, Bengaluru, Bangalore North, Bengaluru Urban, Karnataka, 560058, India",
+        "Laggere Service Road, Malleshwar Layout, Laggere, Bengaluru, Karnataka. Pin-560058 (India)"
+      ]
+    },
+    {
+      "vehicle_number": "FKN00GL4516",
+      "n_violations": 11,
+      "total_cis": 114.78,
+      "zones_hit": [
+        "Vajreshwari Road, R Subanna Circle, Gandhi Nagar, Bengaluru, Karnataka. Pin-560001 (India)",
+        "4th Cross Road, Sri Kanakadasa Circle, Gandhi Nagar, Bengaluru, Karnataka. Pin-560009 (India)",
+        "Vajreshwari Road, Jakkarayana Kere, Gandhi Nagar, Bengaluru, Karnataka. Pin-560009 (India)",
+        "Vajreshwari Road, Railway Officers Enclave, Gandhi Nagar, Bengaluru, Karnataka. Pin-560009 (India)",
+        "6th Cross Road, Gandhinagar, Nehru Nagar, Bengaluru Central City Corporation, Bengaluru, Bangalore North, Bengaluru Urban, Karnataka, 560009, India"
+      ]
+    }
+  ]
+}
