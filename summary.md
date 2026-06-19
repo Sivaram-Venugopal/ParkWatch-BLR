@@ -107,20 +107,20 @@ We conducted a **5-fold K-Fold Cross-Validation** to verify model stability and 
 
 | Metric | Random Forest (Mean ± SD) |
 | :--- | :--- |
-| **R² Score** | **0.2562 ± 0.0079** |
-| **MAE** (Mean Absolute Error) | **6.7428 ± 0.0635** |
-| **RMSE** (Root Mean Squared Error) | **13.7572** |
+| **R² Score** | **0.2347 ± 0.0200** |
+| **MAE** (Mean Absolute Error) | **6.9221 ± 0.6114** |
+| **RMSE** (Root Mean Squared Error) | **14.3719** |
 
-*Note: This performance is highly realistic for forecasting zero-inflated, highly sparse hourly traffic risk data. The previous model's R² (~0.90) was artificially high due to target leakage (since the target was row-level CIS and features included the vehicle type and hour that mathematically defined it).*
+*Note: This performance is highly realistic for forecasting zero-inflated, highly sparse hourly traffic risk data using an honest chronological TimeSeriesSplit. The previous model's R² (~0.90) was artificially high due to target leakage (since the target was row-level CIS and features included the vehicle type and hour that mathematically defined it).*
 
 ### Feature Importances (Random Forest)
-1.  **Time cyclical components (`hour_sin`, `hour_cos`)**: **59.27%** (demonstrates that daily traffic cycles remain the strongest predictor of congestion risk)
-2.  **Short-term lag (`lag_1h_cis`)**: **13.31%** (captures immediate persistence of congestion)
-3.  **Spatial cell ID (`cluster_id_enc`)**: **8.10%** (captures zone-specific baseline risk)
-4.  **Jurisdiction (`police_station_enc`)**: **6.25%**
-5.  **Daily lag (`lag_24h_cis`)**: **5.72%** (captures day-to-day routine patterns)
-6.  **Vehicle Type (`vehicle_type_enc`)**: **4.36%**
-7.  **Calendar & Weather (`dow_sin`, `dow_cos`, `is_monsoon`, `is_weekend`)**: **3.00%** (incorporates the `is_monsoon` weather proxy and weekend flags to model seasonal rainfall bottlenecks)
+1.  **Time cyclical components (`hour_sin`, `hour_cos`)**: **59.45%** (demonstrates that daily traffic cycles remain the strongest predictor of congestion risk)
+2.  **Short-term lag (`lag_1h_cis`)**: **13.38%** (captures immediate persistence of congestion)
+3.  **Spatial cell ID (`cluster_id_enc`)**: **7.88%** (captures zone-specific baseline risk)
+4.  **Jurisdiction (`police_station_enc`)**: **6.22%**
+5.  **Daily lag (`lag_24h_cis`)**: **6.01%** (captures day-to-day routine patterns)
+6.  **Vehicle Type (`vehicle_type_enc`)**: **4.59%**
+7.  **Calendar & Weather (`dow_sin`, `dow_cos`, `is_monsoon`, `is_weekend`)**: **2.47%** (incorporates the `is_monsoon` weather proxy and weekend flags to model seasonal rainfall bottlenecks)
 
 ---
 

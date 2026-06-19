@@ -322,14 +322,23 @@ def priority_tier(rank, total):
 zone_agg['priority_tier'] = zone_agg['priority_rank'].apply(lambda r: priority_tier(r, len(zone_agg)))
 
 # ─────────────────────────────────────────────────────────────
-# STAGE 5.5: ROAD NETWORK INTERSECTION TAGGING (OSMnx)
+# STAGE 5.5: ROAD NETWORK INTERSECTION TAGGING (Scoped OSM)
 # ─────────────────────────────────────────────────────────────
-print("Stage 5.5: Tagging intersection proximity using OpenStreetMap...")
+print("Stage 5.5: Tagging intersection proximity...")
+zone_agg['is_intersection'] = 0
+zone_agg['intersection_method'] = "None"
+osm_verified = False
+
 try:
     import osmnx as ox
-    import networkx as nx
-    # Only process Top 50 zones to save RAM
-    G = ox.graph_from_place('Bengaluru, India', network_type='drive', buffer_dist=1000)
+    # Scope download to a small bounding box around Top 50 EPI zones to save RAM/time
+    top_50 = zone_agg.head(50).copy()
+    north, south = top_50['centroid_lat'].max() + 0.005, top_50['centroid_lat'].min() - 0.005
+    east, west = top_50['centroid_lon'].max() + 0.005, top_50['centroid_lon'].min() - 0.005
+    
+    print(f"  Downloading scoped OSM drive network (Bounding box around Top 50 zones)...")
+    G = ox.graph_from_bbox(north, south, east, west, network_type='drive')
+    print("  OSM graph downloaded successfully. Verifying intersections...")
     
     def check_intersection(lat, lon):
         try:
@@ -338,22 +347,22 @@ try:
         except:
             return 0
             
-    zone_agg['is_intersection'] = zone_agg.head(50).apply(
-        lambda row: check_intersection(row['centroid_lat'], row['centroid_lon']), axis=1
-    )
-    zone_agg['is_intersection'] = zone_agg['is_intersection'].fillna(0).astype(int)
-    print(f"  Tagged {zone_agg['is_intersection'].sum()} zones as active intersection chokepoints.")
+    top_50['is_intersection'] = top_50.apply(lambda row: check_intersection(row['centroid_lat'], row['centroid_lon']), axis=1)
+    zone_agg.update(top_50[['is_intersection']])
+    zone_agg['intersection_method'] = "Real OSM Verification (Scoped BBox)"
+    osm_verified = True
+    print(f"  SUCCESS: Real OSM verification complete. Tagged {zone_agg['is_intersection'].sum()} zones as intersections.")
     
-    # Force garbage collection
-    del G
-    import gc
-    gc.collect()
-    
+    del G, top_50
+    import gc; gc.collect()
+
 except Exception as e:
-    print(f"  OSMnx processing skipped due to resource limits: {e}. Fallback to heuristic.")
-    # Heuristic fallback: Assume top 10 EPI zones are intersections (since they are major junctions)
+    print(f"  WARNING: OSM verification failed ({e}). Falling back to honest heuristic.")
+    # Honest Heuristic Fallback: NO claim of OSM verification
     zone_agg['is_intersection'] = 0
     zone_agg.loc[zone_agg.head(10).index, 'is_intersection'] = 1
+    zone_agg['intersection_method'] = "Heuristic Proxy (Top 10 EPI Zones)"
+    print(f"  Fallback applied: Top 10 EPI zones marked as heuristic junctions (NOT OSM verified).")
 
 print(f"  Top zone EPI: {zone_agg.iloc[0]['EPI']}, at {zone_agg.iloc[0]['sample_location'][:60]}")
 print(f"  Critical-tier zones: {(zone_agg['priority_tier']=='Critical').sum()}")
@@ -472,40 +481,43 @@ feature_cols = [
 X = model_df[feature_cols]
 y = model_df['total_cis']
 
-kf = KFold(n_splits=5, shuffle=True, random_state=42)
+from sklearn.model_selection import TimeSeriesSplit
+
+# Sort globally by time BEFORE splitting to ensure chronological order
+model_df = model_df.sort_values(['date', 'hour']).reset_index(drop=True)
+
+X = model_df[feature_cols]
+y = model_df['total_cis']
+
+# Use TimeSeriesSplit for honest forward-in-time validation
+tscv = TimeSeriesSplit(n_splits=5)
+
 rf_r2_scores, rf_mae_scores, rf_rmse_scores = [], [], []
 
-print("  Running 5-fold cross-validation on Zone-Hour Risk...")
-for train_idx, val_idx in kf.split(X):
+print("  Running 5-fold TimeSeriesSplit CV (Chronological holdout)...")
+for fold, (train_idx, val_idx) in enumerate(tscv.split(X)):
     X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
     y_train, y_val = y.iloc[train_idx], y.iloc[val_idx]
     
-    rf = RandomForestRegressor(
-        n_estimators=50,      # Reduced from 150 to save memory
-        max_depth=10,         # Reduced from 14
-        min_samples_leaf=20,  # Increased to reduce tree size
-        n_jobs=1,             # Force single core to prevent RAM duplication
-        random_state=42
-    )
+    rf = RandomForestRegressor(n_estimators=50, max_depth=10, min_samples_leaf=20, n_jobs=1, random_state=42)
     rf.fit(X_train, y_train)
     rf_pred = rf.predict(X_val)
+    
     rf_r2_scores.append(r2_score(y_val, rf_pred))
     rf_mae_scores.append(mean_absolute_error(y_val, rf_pred))
     rf_rmse_scores.append(np.sqrt(mean_squared_error(y_val, rf_pred)))
+    print(f"    Fold {fold+1} - R2: {rf_r2_scores[-1]:.4f}, MAE: {rf_mae_scores[-1]:.4f}, RMSE: {rf_rmse_scores[-1]:.4f}")
 
 rf_r2_mean, rf_r2_std = np.mean(rf_r2_scores), np.std(rf_r2_scores)
 rf_mae_mean, rf_mae_std = np.mean(rf_mae_scores), np.std(rf_mae_scores)
 rf_rmse_mean = np.mean(rf_rmse_scores)
-print(f"  Random Forest CV — R2: {rf_r2_mean:.4f} (+/- {rf_r2_std:.4f}), MAE: {rf_mae_mean:.4f} (+/- {rf_mae_std:.4f}), RMSE: {rf_rmse_mean:.4f}")
 
-# Fit final model
-rf_model = RandomForestRegressor(
-    n_estimators=50,      # Reduced from 150 to save memory
-    max_depth=10,         # Reduced from 14
-    min_samples_leaf=20,  # Increased to reduce tree size
-    n_jobs=1,             # Force single core to prevent RAM duplication
-    random_state=42
-)
+print(f"\n  Random Forest TimeSeries CV — R2: {rf_r2_mean:.4f} (+/- {rf_r2_std:.4f})")
+print(f"  Random Forest TimeSeries CV — MAE: {rf_mae_mean:.4f} (+/- {rf_mae_std:.4f})")
+print(f"  Random Forest TimeSeries CV — RMSE: {rf_rmse_mean:.4f}")
+
+# Fit final model on the entire chronologically sorted dataset
+rf_model = RandomForestRegressor(n_estimators=50, max_depth=10, min_samples_leaf=20, n_jobs=1, random_state=42)
 rf_model.fit(X, y)
 importances = pd.Series(rf_model.feature_importances_, index=feature_cols).sort_values(ascending=False)
 print("  Feature importances:\n", importances.to_string())
@@ -537,15 +549,16 @@ metadata = {
         "model_type": "Random Forest Regressor (Zone-Hour Risk Forecaster)",
         "r2_score": round(float(rf_r2_mean), 4),
         "mae": round(float(rf_mae_mean), 4),
-        "rmse": round(float(rf_rmse_mean), 4),  # NEW
+        "rmse": round(float(rf_rmse_mean), 4),
         "cv_r2_std": round(float(rf_r2_std), 4),
         "feature_importances": {k: round(float(v), 4) for k, v in importances.items()},
         "anti_leakage_note": "Predicts aggregated zone-level future CIS using 1h and 24h lag features, avoiding row-level target leakage.",
-        "weather_proxy_note": "Includes a 'is_monsoon' binary feature to account for increased parking violations during Bengaluru's heavy rainfall months (Apr-May, Sept-Nov)."
+        "validation_note": "Validated using TimeSeriesSplit (chronological holdout) to measure true forward-in-time forecasting performance on sparse zone-hour data.",
+        "weather_proxy_note": "Includes a 'is_monsoon' binary feature to account for increased parking violations during Bengaluru's heavy rainfall months."
     },
     "methodology_upgrades": {
-        "intersection_mapping": "Used OSMnx to tag zones overlapping road network intersections (degree > 2).",
-        "routing_optimization": "Used Google OR-Tools Capacitated Vehicle Routing Problem (CVRP) solver to generate 3 optimal patrol routes for Top 15 critical zones."
+        "intersection_mapping": zone_agg['intersection_method'].iloc[0] if 'intersection_method' in zone_agg else "Unknown",
+        "routing_optimization": "Used Google OR-Tools CVRP solver to generate 3 optimal patrol routes for Top 10 critical zones."
     },
     "epi_methodology": {
         "formula": "0.5 * volume_score + 0.3 * persistence_score + 0.2 * severity_score",

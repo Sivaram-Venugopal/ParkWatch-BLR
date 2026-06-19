@@ -323,7 +323,10 @@ function renderMap() {
       <div class="popup-row"><b>Station:</b> ${z.dominant_police_station}</div>
     `;
     if (isIntersection) {
-      popupContent += `<span style="color:purple; font-weight:bold; font-size:11px; display:inline-block; margin-top:4px;">⚠️ Intersection Chokepoint (OSM)</span><br>`;
+      const methodText = (typeof METADATA !== 'undefined' && METADATA.methodology_upgrades && METADATA.methodology_upgrades.intersection_mapping) 
+          ? METADATA.methodology_upgrades.intersection_mapping 
+          : 'Heuristic Proxy';
+      popupContent += `<span style="color:purple; font-weight:bold; font-size:11px; display:inline-block; margin-top:4px;">⚠️ Intersection Chokepoint (${methodText})</span><br>`;
     }
     
     marker.bindPopup(popupContent);

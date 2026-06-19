@@ -12,29 +12,30 @@
   },
   "model_performance": {
     "model_type": "Random Forest Regressor (Zone-Hour Risk Forecaster)",
-    "r2_score": 0.2562,
-    "mae": 6.7428,
-    "rmse": 13.7572,
-    "cv_r2_std": 0.0079,
+    "r2_score": 0.2347,
+    "mae": 6.9221,
+    "rmse": 14.3719,
+    "cv_r2_std": 0.02,
     "feature_importances": {
-      "hour_sin": 0.3646,
-      "hour_cos": 0.2281,
-      "lag_1h_cis": 0.1331,
-      "cluster_id_enc": 0.081,
-      "police_station_enc": 0.0625,
-      "lag_24h_cis": 0.0572,
-      "vehicle_type_enc": 0.0436,
-      "dow_sin": 0.0158,
-      "dow_cos": 0.0099,
-      "is_monsoon": 0.003,
-      "is_weekend": 0.0013
+      "hour_sin": 0.3653,
+      "hour_cos": 0.2292,
+      "lag_1h_cis": 0.1338,
+      "cluster_id_enc": 0.0788,
+      "police_station_enc": 0.0622,
+      "lag_24h_cis": 0.0601,
+      "vehicle_type_enc": 0.0459,
+      "dow_sin": 0.0129,
+      "dow_cos": 0.0086,
+      "is_monsoon": 0.0021,
+      "is_weekend": 0.0011
     },
     "anti_leakage_note": "Predicts aggregated zone-level future CIS using 1h and 24h lag features, avoiding row-level target leakage.",
-    "weather_proxy_note": "Includes a 'is_monsoon' binary feature to account for increased parking violations during Bengaluru's heavy rainfall months (Apr-May, Sept-Nov)."
+    "validation_note": "Validated using TimeSeriesSplit (chronological holdout) to measure true forward-in-time forecasting performance on sparse zone-hour data.",
+    "weather_proxy_note": "Includes a 'is_monsoon' binary feature to account for increased parking violations during Bengaluru's heavy rainfall months."
   },
   "methodology_upgrades": {
-    "intersection_mapping": "Used OSMnx to tag zones overlapping road network intersections (degree > 2).",
-    "routing_optimization": "Used Google OR-Tools Capacitated Vehicle Routing Problem (CVRP) solver to generate 3 optimal patrol routes for Top 15 critical zones."
+    "intersection_mapping": "Heuristic Proxy (Top 10 EPI Zones)",
+    "routing_optimization": "Used Google OR-Tools CVRP solver to generate 3 optimal patrol routes for Top 10 critical zones."
   },
   "epi_methodology": {
     "formula": "0.5 * volume_score + 0.3 * persistence_score + 0.2 * severity_score"
