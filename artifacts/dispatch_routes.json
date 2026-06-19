@@ -1,0 +1,80 @@
+[
+  [
+    {
+      "lat": 12.96418918918919,
+      "lon": 77.5768019209152,
+      "epi": 93.0,
+      "location": "Mysore Road, Sri Krishna Rajendra Market, Chickpet"
+    },
+    {
+      "lat": 12.98445945945946,
+      "lon": 77.60315297233153,
+      "epi": 49.83,
+      "location": "Meenakshi Koil Street, Shivaji Nagar, Bengaluru, K"
+    },
+    {
+      "lat": 12.981756756756758,
+      "lon": 77.61008745954635,
+      "epi": 49.81,
+      "location": "Kamaraj Road, Sri Nagamma Devi Circle, Sivanchetti"
+    },
+    {
+      "lat": 12.980405405405406,
+      "lon": 77.61008745954635,
+      "epi": 44.83,
+      "location": "Dickenson Road, Sri Nagamma Devi Circle, Sivanchet"
+    },
+    {
+      "lat": 12.93445945945946,
+      "lon": 77.69052751123826,
+      "epi": 39.08,
+      "location": "New Horizon College Road, New Horizon College of E"
+    },
+    {
+      "lat": 13.008783783783784,
+      "lon": 77.69468820356715,
+      "epi": 39.12,
+      "location": "MBT Road, Devasandra Junction, KR Puram, Bengaluru"
+    },
+    {
+      "lat": 13.070945945945947,
+      "lon": 77.58789710045892,
+      "epi": 51.6,
+      "location": "Sahakar Nagar Road, Fortuna Acacia, Byatarayanapur"
+    },
+    {
+      "lat": 12.977702702702704,
+      "lon": 77.5768019209152,
+      "epi": 51.36,
+      "location": "6th Main Road, RK Puram, Gandhi Nagar, Bengaluru, "
+    },
+    {
+      "lat": 12.976351351351353,
+      "lon": 77.5768019209152,
+      "epi": 41.95,
+      "location": "5th Main Road, Kempe Gowda Circle, Gandhi Nagar, B"
+    }
+  ],
+  [
+    {
+      "lat": 12.96418918918919,
+      "lon": 77.5768019209152,
+      "epi": 93.0,
+      "location": "Mysore Road, Sri Krishna Rajendra Market, Chickpet"
+    }
+  ],
+  [
+    {
+      "lat": 12.96418918918919,
+      "lon": 77.5768019209152,
+      "epi": 93.0,
+      "location": "Mysore Road, Sri Krishna Rajendra Market, Chickpet"
+    },
+    {
+      "lat": 13.184459459459461,
+      "lon": 77.67943233169454,
+      "epi": 46.07,
+      "location": "Unnamed Road, Begur Chikkanahalli, Bengaluru, Karn"
+    }
+  ]
+]

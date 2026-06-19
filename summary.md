@@ -87,33 +87,38 @@ $$\text{EPI} = 0.5 \times \text{Score}_{\text{Volume}} + 0.3 \times \text{Score}
 ---
 
 ## 6. Predictive Risk Model (Stage 6)
-While historical hotspots are useful, static maps cannot predict risk for locations or times where enforcement was absent. We trained a machine learning regressor to predict expected `CIS` based on location, time, and vehicle characteristics.
+While historical hotspots are useful, static maps cannot predict future risk for locations or times where enforcement was absent. We refactored our predictive model to forecast future zone-hour risk, resolving row-level target leakage (which occurred previously because individual violation attributes directly derived the CIS). 
 
-### Model Features
-*   `latitude`, `longitude` (spatial coordinates)
+The target variable is now the **Expected Total CIS per Zone per Hour** (representing future spatio-temporal risk).
+
+### Model Features (With Lag Features)
 *   `hour_sin`, `hour_cos` (cyclical time of day)
 *   `dow_sin`, `dow_cos` (cyclical day of week)
 *   `is_weekend` (binary flag)
+*   `lag_1h_cis` (CIS in the same zone during the previous hour $t-1$)
+*   `lag_24h_cis` (CIS in the same zone during the same hour yesterday $t-24$)
 *   `police_station_enc` (encoded jurisdiction)
-*   `vehicle_type_enc` (encoded footprint)
+*   `vehicle_type_enc` (encoded dominant vehicle type in the zone-hour bin)
 *   `cluster_id_enc` (label-encoded grid cell ID)
 
 ### Model Selection & Evaluation (5-Fold Cross-Validation)
-We conducted a **5-fold K-Fold Cross-Validation** to verify model stability and prevent overfitting, comparing a **Random Forest Regressor** (150 estimators, max depth 14) and a **Gradient Boosting Regressor** (200 estimators, max depth 5):
+We conducted a **5-fold K-Fold Cross-Validation** to verify model stability and prevent overfitting. The model is trained using a **Random Forest Regressor** (150 estimators, max depth 14, min_samples_leaf 10):
 
-| Metric | Random Forest (Mean ± SD) | Gradient Boosting (Mean ± SD) |
-| :--- | :--- | :--- |
-| **R² Score** | **0.9086 ± 0.0016** | 0.8967 ± 0.0007 |
-| **MAE** (Mean Absolute Error) | **0.5909 ± 0.0022** | 0.6627 ± 0.0025 |
+| Metric | Random Forest (Mean ± SD) |
+| :--- | :--- |
+| **R² Score** | **0.2560 ± 0.0083** |
+| **MAE** (Mean Absolute Error) | **6.7430 ± 0.0618** |
 
-*Random Forest was selected as the final model due to its higher R² and lower MAE. The exceptionally low standard deviation (±0.0016) proves the model is highly stable and credible.*
+*Note: This performance is highly realistic for forecasting zero-inflated, highly sparse hourly traffic risk data. The previous model's R² (~0.90) was artificially high due to target leakage (since the target was row-level CIS and features included the vehicle type and hour that mathematically defined it).*
 
 ### Feature Importances (Random Forest)
-1.  **Time cyclical components (`hour_sin`, `hour_cos`)**: **68.89%** (demonstrates that time-of-day traffic dynamics dominate congestion impact)
-2.  **Vehicle Type (`vehicle_type_enc`)**: **26.40%** (indicates the large weight of foot-print constraints like buses vs. scooters)
-3.  **Spatial coordinates (`longitude`, `latitude`)**: **3.17%**
-4.  **Jurisdiction & Cell ID (`police_station_enc`, `cluster_id_enc`)**: **1.15%**
-5.  **Calendar components (`dow_sin`, `dow_cos`, `is_weekend`)**: **0.39%**
+1.  **Time cyclical components (`hour_sin`, `hour_cos`)**: **59.34%** (demonstrates that daily traffic cycles remain the strongest predictor of congestion risk)
+2.  **Short-term lag (`lag_1h_cis`)**: **13.34%** (captures immediate persistence of congestion)
+3.  **Spatial cell ID (`cluster_id_enc`)**: **8.24%** (captures zone-specific baseline risk)
+4.  **Jurisdiction (`police_station_enc`)**: **6.25%**
+5.  **Daily lag (`lag_24h_cis`)**: **5.71%** (captures day-to-day routine patterns)
+6.  **Vehicle Type (`vehicle_type_enc`)**: **4.41%**
+7.  **Calendar components (`dow_sin`, `dow_cos`, `is_weekend`)**: **2.71%**
 
 ---
 
