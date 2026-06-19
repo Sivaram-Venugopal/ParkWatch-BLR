@@ -116,6 +116,14 @@
 </head>
 <body>
 
+<!-- Upgrade 4: Value Statement Banner -->
+<div style="background: linear-gradient(90deg, #1a2a6c, #b21f1f, #fdbb2d); padding: 20px; color: white; text-align: center; margin-bottom: 20px; border-radius: 8px; margin: 16px;">
+    <h2 style="margin: 0; font-weight: 700; font-size: 20px;">ParkWatch BLR: AI-Driven Parking Intelligence</h2>
+    <p style="margin: 5px 0 0 0; font-size: 0.9rem;">
+        Quantifying congestion impact (CIS) & optimizing enforcement dispatch (OR-Tools CVRP) across Bengaluru's road network.
+    </p>
+</div>
+
 <header>
   <div class="brand">
     <div class="brand-mark">PW</div>
@@ -164,6 +172,41 @@
         </thead>
         <tbody id="zoneTableBody"></tbody>
       </table>
+    </div>
+
+    <!-- Upgrade 1: Optimal Enforcement Dispatch Simulator -->
+    <div class="dispatch-simulator" style="background: #1c2530; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid var(--border);">
+        <h4 style="font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px;">🚔 Enforcement Dispatch Simulator</h4>
+        <p style="font-size: 11px; color: var(--text-dim); margin-bottom: 10px;">Optimal routing for 3 patrol vehicles covering Top 10 critical zones (Google OR-Tools CVRP).</p>
+        <button id="dispatchBtn" style="background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; font-size: 12px;">
+            Deploy Tow-Trucks (Show Routes)
+        </button>
+        <div id="routeDetails" style="margin-top: 10px; font-size: 11px; color: var(--text-dim); line-height: 1.4; display: none;"></div>
+    </div>
+
+    <!-- Upgrade 3: Model Performance Panel -->
+    <div class="model-stats-panel" style="background: #1c2530; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid var(--border);">
+        <h4 style="font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 10px;">🧠 Predictive Risk Model</h4>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; gap: 8px;">
+            <div style="text-align: center; flex: 1;">
+                <span style="font-size: 15px; font-weight: bold; color: #28a745;" id="mlR2">--</span><br>
+                <small style="font-size: 10px; color: var(--text-dim);">R² Score</small>
+            </div>
+            <div style="text-align: center; flex: 1;">
+                <span style="font-size: 15px; font-weight: bold; color: #17a2b8;" id="mlMAE">--</span><br>
+                <small style="font-size: 10px; color: var(--text-dim);">MAE</small>
+            </div>
+            <div style="text-align: center; flex: 1;">
+                <span style="font-size: 15px; font-weight: bold; color: #ffc107;" id="mlRMSE">--</span><br>
+                <small style="font-size: 10px; color: var(--text-dim);">RMSE</small>
+            </div>
+            <div style="text-align: center; flex: 1;">
+                <span style="font-size: 15px; font-weight: bold; color: #6f42c1;" id="intersectionCount">--</span><br>
+                <small style="font-size: 9px; color: var(--text-dim); white-space: nowrap;">Int. Chokes</small>
+            </div>
+        </div>
+        <div id="mlNote" style="font-size: 11px; font-style: italic; color: var(--text-dim); border-top: 1px solid var(--border); padding-top: 8px; margin-bottom: 5px; line-height: 1.4;"></div>
+        <div id="weatherNote" style="font-size: 11px; font-style: italic; color: var(--text-dim); line-height: 1.4;"></div>
     </div>
   </div>
 </div>
@@ -246,69 +289,45 @@ function renderStats() {
   `;
 }
 
+let map; // Global map variable so the simulator event listener can access it
+
 // ---------- Map ----------
 function renderMap() {
-  const map = L.map('map', { zoomControl: true }).setView([12.97, 77.59], 11);
+  map = L.map('map', { zoomControl: true }).setView([12.97, 77.59], 11);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; OpenStreetMap &copy; CARTO',
     subdomains: 'abcd', maxZoom: 19
   }).addTo(map);
 
   ZONES_PRIORITY.forEach(z => {
+    const isIntersection = z.is_intersection === 1;
     const radius = 4 + Math.sqrt(z.EPI) * 1.6;
-    const color = TIER_COLOR[z.priority_tier] || '#888';
+    // Purple for intersections, red for critical, orange/yellow for high
+    const markerColor = isIntersection ? '#800080' : (z.priority_tier === 'Critical' ? '#dc3545' : '#fd7e14');
+    
     const marker = L.circleMarker([z.centroid_lat, z.centroid_lon], {
-      radius, color, fillColor: color, fillOpacity: 0.55, weight: 1
+      radius, 
+      fillColor: markerColor, 
+      color: '#000', 
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.75
     }).addTo(map);
-    marker.bindPopup(`
-      <div class="popup-title">${z.sample_location.split(',').slice(0,3).join(',')} ${z.is_intersection ? '⚠️' : ''}</div>
-      <div class="popup-epi">EPI ${z.EPI}</div>
-      <div class="popup-row">Tier: ${z.priority_tier} &middot; Rank #${z.priority_rank}</div>
-      <div class="popup-row">${z.total_violations.toLocaleString()} violations &middot; ${z.n_unique_vehicles.toLocaleString()} vehicles</div>
-      <div class="popup-row">Dominant: ${z.dominant_violation_type} (${z.dominant_vehicle_type})</div>
-      <div class="popup-row">Station: ${z.dominant_police_station} &middot; Active ${z.n_days_active} days</div>
-      ${z.is_intersection ? '<div class="popup-row" style="color:#00e5ff; font-weight: 600; margin-top: 4px;">⚠️ Intersection chokepoint (OSM degree > 2)</div>' : ''}
-    `);
-  });
 
-  // Render OR-Tools Patrol Dispatch Routes
-  if (typeof DISPATCH_ROUTES !== 'undefined' && DISPATCH_ROUTES.length > 0) {
-    const routeColors = ['#00e676', '#e040fb', '#00e5ff']; // Green, Purple, Cyan
-    DISPATCH_ROUTES.forEach((route, idx) => {
-      if (route.length > 1) {
-        const latlngs = route.map(p => [p.lat, p.lon]);
-        
-        // Draw path polyline
-        L.polyline(latlngs, {
-          color: routeColors[idx],
-          weight: 4,
-          opacity: 0.85,
-          dashArray: '8, 8',
-          lineJoin: 'round'
-        }).addTo(map);
-        
-        // Draw markers for each node on the route
-        route.forEach((p, step) => {
-          const isStart = step === 0;
-          const markerColor = isStart ? '#ffeb3b' : routeColors[idx]; // Yellow for start node
-          const marker = L.circleMarker([p.lat, p.lon], {
-            radius: isStart ? 7 : 4.5,
-            color: '#000',
-            fillColor: markerColor,
-            fillOpacity: 1,
-            weight: 2
-          }).addTo(map);
-          
-          marker.bindPopup(`
-            <div class="popup-title">Patrol Route #${idx + 1} &middot; Stop #${step + 1}</div>
-            <div class="popup-row">Location: ${p.location}</div>
-            <div class="popup-row">EPI: ${p.epi}</div>
-            ${isStart ? '<div class="popup-row" style="color:#ffeb3b; font-weight:600;">Depot / Start Node</div>' : ''}
-          `);
-        });
-      }
-    });
-  }
+    let popupContent = `
+      <div class="popup-title"><b>${z.sample_location}</b> ${isIntersection ? '⚠️' : ''}</div>
+      <div class="popup-epi"><b>EPI Score:</b> ${z.EPI} (${z.priority_tier})</div>
+      <div class="popup-row"><b>Rank #${z.priority_rank} &middot; Total CIS:</b> ${z.total_CIS}</div>
+      <div class="popup-row">${z.total_violations.toLocaleString()} violations &middot; ${z.n_unique_vehicles.toLocaleString()} vehicles</div>
+      <div class="popup-row"><b>Dominant:</b> ${z.dominant_violation_type} (${z.dominant_vehicle_type})</div>
+      <div class="popup-row"><b>Station:</b> ${z.dominant_police_station}</div>
+    `;
+    if (isIntersection) {
+      popupContent += `<span style="color:purple; font-weight:bold; font-size:11px; display:inline-block; margin-top:4px;">⚠️ Intersection Chokepoint (OSM)</span><br>`;
+    }
+    
+    marker.bindPopup(popupContent);
+  });
 }
 
 // ---------- Zone leaderboard table ----------
@@ -431,6 +450,73 @@ renderHourChart();
 renderViolationChart();
 renderStationChart();
 renderVehicleChart();
+
+// ---------- Upgrade 1: Optimal Enforcement Dispatch Simulator ----------
+let routeLayers = []; // Keep track of drawn routes
+const routeColors = ['#FF0000', '#008000', '#0000FF']; // Red, Green, Blue for 3 vehicles
+
+document.getElementById('dispatchBtn')?.addEventListener('click', function() {
+    const routeDetailsDiv = document.getElementById('routeDetails');
+    
+    // Clear existing routes if any
+    routeLayers.forEach(layer => map.removeLayer(layer));
+    routeLayers = [];
+
+    if (typeof DISPATCH_ROUTES === 'undefined' || DISPATCH_ROUTES.length === 0) {
+        alert('Dispatch routes not available.');
+        return;
+    }
+
+    // Toggle routes off if already shown
+    if (routeDetailsDiv.style.display === 'block') {
+        routeDetailsDiv.style.display = 'none';
+        this.innerText = 'Deploy Tow-Trucks (Show Routes)';
+        return;
+    }
+
+    routeDetailsDiv.style.display = 'block';
+    this.innerText = 'Hide Patrol Routes';
+    
+    let htmlSummary = '<b>Optimal Patrol Assignments:</b><br>';
+    
+    DISPATCH_ROUTES.forEach((route, idx) => {
+        if (route.length === 0) return;
+        
+        // Draw polyline
+        const latlngs = route.map(p => [p.lat, p.lon]);
+        const polyline = L.polyline(latlngs, {color: routeColors[idx], weight: 4, opacity: 0.7, dashArray: '10, 10'}).addTo(map);
+        routeLayers.push(polyline);
+        
+        // Add stop markers
+        route.forEach((stop, stopIdx) => {
+            const marker = L.circleMarker([stop.lat, stop.lon], {
+                radius: 6, fillColor: routeColors[idx], color: '#fff', weight: 1, fillOpacity: 0.9
+            }).bindPopup(`<b>Vehicle ${idx+1} - Stop ${stopIdx+1}</b><br>EPI: ${stop.epi}<br>${stop.location}`).addTo(map);
+            routeLayers.push(marker);
+        });
+
+        htmlSummary += `<span style="color:${routeColors[idx]};">■</span> Vehicle ${idx+1}: ${route.length} zones targeted<br>`;
+    });
+
+    // Zoom map to fit the first route
+    if (routeLayers.length > 0 && DISPATCH_ROUTES[0].length > 0) {
+        map.fitBounds(routeLayers[0].getBounds());
+    }
+
+    routeDetailsDiv.innerHTML = htmlSummary;
+});
+
+// ---------- Upgrade 3: Populate Model Stats Panel ----------
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof METADATA !== 'undefined') {
+        document.getElementById('mlR2').innerText = METADATA.model_performance.r2_score || 'N/A';
+        document.getElementById('mlMAE').innerText = METADATA.model_performance.mae || 'N/A';
+        document.getElementById('mlRMSE').innerText = METADATA.model_performance.rmse || 'N/A';
+        document.getElementById('mlNote').innerText = METADATA.model_performance.anti_leakage_note || 'Advanced spatio-temporal forecasting model.';
+        document.getElementById('weatherNote').innerText = METADATA.model_performance.weather_proxy_note || '';
+        document.getElementById('intersectionCount').innerText = METADATA.data_summary.n_intersection_chokepoints || 0;
+    }
+});
 </script>
 
 </body>
