@@ -91,12 +91,13 @@ While historical hotspots are useful, static maps cannot predict future risk for
 
 The target variable is now the **Expected Total CIS per Zone per Hour** (representing future spatio-temporal risk).
 
-### Model Features (With Lag Features)
+### Model Features (With Lag Features & Weather Proxy)
 *   `hour_sin`, `hour_cos` (cyclical time of day)
 *   `dow_sin`, `dow_cos` (cyclical day of week)
 *   `is_weekend` (binary flag)
 *   `lag_1h_cis` (CIS in the same zone during the previous hour $t-1$)
 *   `lag_24h_cis` (CIS in the same zone during the same hour yesterday $t-24$)
+*   `is_monsoon` (binary weather proxy flagging heavy rain months Apr-May and Sept-Nov)
 *   `police_station_enc` (encoded jurisdiction)
 *   `vehicle_type_enc` (encoded dominant vehicle type in the zone-hour bin)
 *   `cluster_id_enc` (label-encoded grid cell ID)
@@ -106,19 +107,20 @@ We conducted a **5-fold K-Fold Cross-Validation** to verify model stability and 
 
 | Metric | Random Forest (Mean ± SD) |
 | :--- | :--- |
-| **R² Score** | **0.2560 ± 0.0083** |
-| **MAE** (Mean Absolute Error) | **6.7430 ± 0.0618** |
+| **R² Score** | **0.2562 ± 0.0079** |
+| **MAE** (Mean Absolute Error) | **6.7428 ± 0.0635** |
+| **RMSE** (Root Mean Squared Error) | **13.7572** |
 
 *Note: This performance is highly realistic for forecasting zero-inflated, highly sparse hourly traffic risk data. The previous model's R² (~0.90) was artificially high due to target leakage (since the target was row-level CIS and features included the vehicle type and hour that mathematically defined it).*
 
 ### Feature Importances (Random Forest)
-1.  **Time cyclical components (`hour_sin`, `hour_cos`)**: **59.34%** (demonstrates that daily traffic cycles remain the strongest predictor of congestion risk)
-2.  **Short-term lag (`lag_1h_cis`)**: **13.34%** (captures immediate persistence of congestion)
-3.  **Spatial cell ID (`cluster_id_enc`)**: **8.24%** (captures zone-specific baseline risk)
+1.  **Time cyclical components (`hour_sin`, `hour_cos`)**: **59.27%** (demonstrates that daily traffic cycles remain the strongest predictor of congestion risk)
+2.  **Short-term lag (`lag_1h_cis`)**: **13.31%** (captures immediate persistence of congestion)
+3.  **Spatial cell ID (`cluster_id_enc`)**: **8.10%** (captures zone-specific baseline risk)
 4.  **Jurisdiction (`police_station_enc`)**: **6.25%**
-5.  **Daily lag (`lag_24h_cis`)**: **5.71%** (captures day-to-day routine patterns)
-6.  **Vehicle Type (`vehicle_type_enc`)**: **4.41%**
-7.  **Calendar components (`dow_sin`, `dow_cos`, `is_weekend`)**: **2.71%**
+5.  **Daily lag (`lag_24h_cis`)**: **5.72%** (captures day-to-day routine patterns)
+6.  **Vehicle Type (`vehicle_type_enc`)**: **4.36%**
+7.  **Calendar & Weather (`dow_sin`, `dow_cos`, `is_monsoon`, `is_weekend`)**: **3.00%** (incorporates the `is_monsoon` weather proxy and weekend flags to model seasonal rainfall bottlenecks)
 
 ---
 

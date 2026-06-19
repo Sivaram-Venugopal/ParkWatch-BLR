@@ -25,7 +25,7 @@ from math import radians, sin, cos, sqrt, atan2
 from sklearn.cluster import DBSCAN
 from sklearn.model_selection import train_test_split, KFold
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-from sklearn.metrics import r2_score, mean_absolute_error
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from sklearn.preprocessing import LabelEncoder
 import warnings
 warnings.filterwarnings('ignore')
@@ -444,6 +444,11 @@ model_df = model_df.sort_values(by=['cluster_id', 'date', 'hour'])
 model_df['lag_1h_cis'] = model_df.groupby('cluster_id')['total_cis'].shift(1).fillna(0)
 model_df['lag_24h_cis'] = model_df.groupby('cluster_id')['total_cis'].shift(24).fillna(0)
 
+# Add Weather Proxy (Monsoon Season in Bengaluru: Apr-May & Sept-Nov)
+# Converts 'date' to month, then flags monsoon months
+model_df['month'] = pd.to_datetime(model_df['date']).dt.month
+model_df['is_monsoon'] = model_df['month'].isin([4, 5, 9, 10, 11]).astype(int)
+
 # Encoding
 le_station = LabelEncoder()
 le_vehicle = LabelEncoder()
@@ -460,14 +465,15 @@ model_df['dow_cos'] = np.cos(2 * np.pi * model_df['dow'] / 7)
 # Final Feature Set (No data leakage)
 feature_cols = [
     'hour_sin', 'hour_cos', 'dow_sin', 'dow_cos', 'is_weekend',
-    'lag_1h_cis', 'lag_24h_cis', # Time-series lags
+    'lag_1h_cis', 'lag_24h_cis', 
+    'is_monsoon',             # <-- NEW WEATHER PROXY
     'police_station_enc', 'vehicle_type_enc', 'cluster_id_enc'
 ]
 X = model_df[feature_cols]
 y = model_df['total_cis']
 
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
-rf_r2_scores, rf_mae_scores = [], []
+rf_r2_scores, rf_mae_scores, rf_rmse_scores = [], [], []
 
 print("  Running 5-fold cross-validation on Zone-Hour Risk...")
 for train_idx, val_idx in kf.split(X):
@@ -485,10 +491,12 @@ for train_idx, val_idx in kf.split(X):
     rf_pred = rf.predict(X_val)
     rf_r2_scores.append(r2_score(y_val, rf_pred))
     rf_mae_scores.append(mean_absolute_error(y_val, rf_pred))
+    rf_rmse_scores.append(np.sqrt(mean_squared_error(y_val, rf_pred)))
 
 rf_r2_mean, rf_r2_std = np.mean(rf_r2_scores), np.std(rf_r2_scores)
 rf_mae_mean, rf_mae_std = np.mean(rf_mae_scores), np.std(rf_mae_scores)
-print(f"  Random Forest CV — R2: {rf_r2_mean:.4f} (+/- {rf_r2_std:.4f}), MAE: {rf_mae_mean:.4f} (+/- {rf_mae_std:.4f})")
+rf_rmse_mean = np.mean(rf_rmse_scores)
+print(f"  Random Forest CV — R2: {rf_r2_mean:.4f} (+/- {rf_r2_std:.4f}), MAE: {rf_mae_mean:.4f} (+/- {rf_mae_std:.4f}), RMSE: {rf_rmse_mean:.4f}")
 
 # Fit final model
 rf_model = RandomForestRegressor(
@@ -529,9 +537,11 @@ metadata = {
         "model_type": "Random Forest Regressor (Zone-Hour Risk Forecaster)",
         "r2_score": round(float(rf_r2_mean), 4),
         "mae": round(float(rf_mae_mean), 4),
+        "rmse": round(float(rf_rmse_mean), 4),  # NEW
         "cv_r2_std": round(float(rf_r2_std), 4),
         "feature_importances": {k: round(float(v), 4) for k, v in importances.items()},
-        "anti_leakage_note": "Predicts aggregated zone-level future CIS using 1h and 24h lag features, avoiding row-level target leakage."
+        "anti_leakage_note": "Predicts aggregated zone-level future CIS using 1h and 24h lag features, avoiding row-level target leakage.",
+        "weather_proxy_note": "Includes a 'is_monsoon' binary feature to account for increased parking violations during Bengaluru's heavy rainfall months (Apr-May, Sept-Nov)."
     },
     "methodology_upgrades": {
         "intersection_mapping": "Used OSMnx to tag zones overlapping road network intersections (degree > 2).",

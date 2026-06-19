@@ -12,22 +12,25 @@
   },
   "model_performance": {
     "model_type": "Random Forest Regressor (Zone-Hour Risk Forecaster)",
-    "r2_score": 0.256,
-    "mae": 6.743,
-    "cv_r2_std": 0.0083,
+    "r2_score": 0.2562,
+    "mae": 6.7428,
+    "rmse": 13.7572,
+    "cv_r2_std": 0.0079,
     "feature_importances": {
-      "hour_sin": 0.3648,
-      "hour_cos": 0.2286,
-      "lag_1h_cis": 0.1334,
-      "cluster_id_enc": 0.0824,
+      "hour_sin": 0.3646,
+      "hour_cos": 0.2281,
+      "lag_1h_cis": 0.1331,
+      "cluster_id_enc": 0.081,
       "police_station_enc": 0.0625,
-      "lag_24h_cis": 0.0571,
-      "vehicle_type_enc": 0.0441,
-      "dow_sin": 0.0157,
-      "dow_cos": 0.0098,
-      "is_weekend": 0.0016
+      "lag_24h_cis": 0.0572,
+      "vehicle_type_enc": 0.0436,
+      "dow_sin": 0.0158,
+      "dow_cos": 0.0099,
+      "is_monsoon": 0.003,
+      "is_weekend": 0.0013
     },
-    "anti_leakage_note": "Predicts aggregated zone-level future CIS using 1h and 24h lag features, avoiding row-level target leakage."
+    "anti_leakage_note": "Predicts aggregated zone-level future CIS using 1h and 24h lag features, avoiding row-level target leakage.",
+    "weather_proxy_note": "Includes a 'is_monsoon' binary feature to account for increased parking violations during Bengaluru's heavy rainfall months (Apr-May, Sept-Nov)."
   },
   "methodology_upgrades": {
     "intersection_mapping": "Used OSMnx to tag zones overlapping road network intersections (degree > 2).",

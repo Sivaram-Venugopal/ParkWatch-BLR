@@ -228,7 +228,7 @@ function renderStats() {
     { label: 'Hotspot zones', value: m.data_summary.n_qualifying_hotspot_zones?.toLocaleString() ?? '2,293', sub: `from ${m.data_summary.n_grid_cells_touched?.toLocaleString() ?? ''} grid cells` },
     { label: 'Police stations', value: m.data_summary.n_police_stations || '44', sub: 'jurisdictions covered' },
     { label: 'Intersection nodes', value: m.data_summary.n_intersection_chokepoints || '10', sub: 'major chokepoints tagged' },
-    { label: 'Model accuracy', value: `R² ${m.model_performance.r2_score}`, sub: `Zone-Hour RF, MAE ${m.model_performance.mae}` },
+    { label: 'Model accuracy', value: `R² ${m.model_performance.r2_score}`, sub: `MAE ${m.model_performance.mae}, RMSE ${m.model_performance.rmse}` },
     { label: 'Date range', value: '5 months', sub: `${m.data_summary.date_range_start} to ${m.data_summary.date_range_end}` },
   ];
   document.getElementById('statsRow').innerHTML = stats.map(s => `
