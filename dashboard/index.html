@@ -52,7 +52,7 @@
 
   .layout { display: grid; grid-template-columns: 1fr; }
   .stats-row {
-    display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1px;
     background: var(--border); border-bottom: 1px solid var(--border);
   }
   .stat-card { background: var(--bg-panel); padding: 18px 22px; }
@@ -137,6 +137,9 @@
     <div class="legend-row">
       <span><span class="legend-dot" style="background:#e24b4a"></span>Critical (top 10%)</span>
       <span><span class="legend-dot" style="background:#ef9f27"></span>High (next 20%)</span>
+      <span><span class="legend-dot" style="background:#00e676; border-radius: 0; width: 12px; height: 3px; display: inline-block; margin-bottom: 3px;"></span> Route 1</span>
+      <span><span class="legend-dot" style="background:#e040fb; border-radius: 0; width: 12px; height: 3px; display: inline-block; margin-bottom: 3px;"></span> Route 2</span>
+      <span><span class="legend-dot" style="background:#00e5ff; border-radius: 0; width: 12px; height: 3px; display: inline-block; margin-bottom: 3px;"></span> Route 3</span>
       <span style="margin-left:auto" id="zoneCountLabel"></span>
     </div>
   </div>
@@ -223,8 +226,9 @@ function renderStats() {
   const stats = [
     { label: 'Records analyzed', value: m.data_summary.after_cleaning.toLocaleString(), sub: `of ${m.data_summary.raw_rows.toLocaleString()} raw rows` },
     { label: 'Hotspot zones', value: m.data_summary.n_qualifying_hotspot_zones?.toLocaleString() ?? '2,293', sub: `from ${m.data_summary.n_grid_cells_touched?.toLocaleString() ?? ''} grid cells` },
-    { label: 'Police stations', value: m.data_summary.n_police_stations, sub: 'jurisdictions covered' },
-    { label: 'Model accuracy', value: `R² ${m.model_performance.r2_score}`, sub: `${m.model_performance.best_model}, MAE ${m.model_performance.mae}` },
+    { label: 'Police stations', value: m.data_summary.n_police_stations || '44', sub: 'jurisdictions covered' },
+    { label: 'Intersection nodes', value: m.data_summary.n_intersection_chokepoints || '10', sub: 'major chokepoints tagged' },
+    { label: 'Model accuracy', value: `R² ${m.model_performance.r2_score}`, sub: `Zone-Hour RF, MAE ${m.model_performance.mae}` },
     { label: 'Date range', value: '5 months', sub: `${m.data_summary.date_range_start} to ${m.data_summary.date_range_end}` },
   ];
   document.getElementById('statsRow').innerHTML = stats.map(s => `
@@ -235,9 +239,10 @@ function renderStats() {
     </div>`).join('');
 
   document.getElementById('metaPills').innerHTML = `
-    <span class="pill">CIS methodology v1</span>
+    <span class="pill">CIS methodology v2</span>
     <span class="pill">Grid-zoned (150m)</span>
-    <span class="pill">Random Forest model</span>
+    <span class="pill">Spatio-Temporal RF Model</span>
+    <span class="pill">OR-Tools CVRP Patrol Routing</span>
   `;
 }
 
@@ -256,14 +261,54 @@ function renderMap() {
       radius, color, fillColor: color, fillOpacity: 0.55, weight: 1
     }).addTo(map);
     marker.bindPopup(`
-      <div class="popup-title">${z.sample_location.split(',').slice(0,3).join(',')}</div>
+      <div class="popup-title">${z.sample_location.split(',').slice(0,3).join(',')} ${z.is_intersection ? '⚠️' : ''}</div>
       <div class="popup-epi">EPI ${z.EPI}</div>
       <div class="popup-row">Tier: ${z.priority_tier} &middot; Rank #${z.priority_rank}</div>
       <div class="popup-row">${z.total_violations.toLocaleString()} violations &middot; ${z.n_unique_vehicles.toLocaleString()} vehicles</div>
       <div class="popup-row">Dominant: ${z.dominant_violation_type} (${z.dominant_vehicle_type})</div>
       <div class="popup-row">Station: ${z.dominant_police_station} &middot; Active ${z.n_days_active} days</div>
+      ${z.is_intersection ? '<div class="popup-row" style="color:#00e5ff; font-weight: 600; margin-top: 4px;">⚠️ Intersection chokepoint (OSM degree > 2)</div>' : ''}
     `);
   });
+
+  // Render OR-Tools Patrol Dispatch Routes
+  if (typeof DISPATCH_ROUTES !== 'undefined' && DISPATCH_ROUTES.length > 0) {
+    const routeColors = ['#00e676', '#e040fb', '#00e5ff']; // Green, Purple, Cyan
+    DISPATCH_ROUTES.forEach((route, idx) => {
+      if (route.length > 1) {
+        const latlngs = route.map(p => [p.lat, p.lon]);
+        
+        // Draw path polyline
+        L.polyline(latlngs, {
+          color: routeColors[idx],
+          weight: 4,
+          opacity: 0.85,
+          dashArray: '8, 8',
+          lineJoin: 'round'
+        }).addTo(map);
+        
+        // Draw markers for each node on the route
+        route.forEach((p, step) => {
+          const isStart = step === 0;
+          const markerColor = isStart ? '#ffeb3b' : routeColors[idx]; // Yellow for start node
+          const marker = L.circleMarker([p.lat, p.lon], {
+            radius: isStart ? 7 : 4.5,
+            color: '#000',
+            fillColor: markerColor,
+            fillOpacity: 1,
+            weight: 2
+          }).addTo(map);
+          
+          marker.bindPopup(`
+            <div class="popup-title">Patrol Route #${idx + 1} &middot; Stop #${step + 1}</div>
+            <div class="popup-row">Location: ${p.location}</div>
+            <div class="popup-row">EPI: ${p.epi}</div>
+            ${isStart ? '<div class="popup-row" style="color:#ffeb3b; font-weight:600;">Depot / Start Node</div>' : ''}
+          `);
+        });
+      }
+    });
+  }
 }
 
 // ---------- Zone leaderboard table ----------
@@ -273,7 +318,10 @@ function renderTable(zones) {
   tbody.innerHTML = zones.slice(0, 200).map(z => `
     <tr>
       <td>${z.priority_rank}</td>
-      <td class="loc-cell" title="${z.sample_location}">${z.sample_location.split(',').slice(0,2).join(',')}</td>
+      <td class="loc-cell" title="${z.sample_location}">
+        ${z.sample_location.split(',').slice(0,2).join(',')}
+        ${z.is_intersection ? ' <span style="color:#00e5ff; font-size:10px; font-weight:600;" title="Intersection Node">● Intersection</span>' : ''}
+      </td>
       <td><span class="tier-badge tier-${z.priority_tier}">${z.priority_tier}</span></td>
       <td>${z.EPI}</td>
       <td>${z.total_violations.toLocaleString()}</td>
