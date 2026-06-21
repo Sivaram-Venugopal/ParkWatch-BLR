@@ -39,7 +39,7 @@ from Bengaluru Traffic Police (Nov 2023 – Apr 2024) and turns them into:
 │   ├── rf_model.pkl
 │   ├── le_station.pkl
 │   └── le_vehicle.pkl
-└── dashboard/                     <- reviewer-facing prototype (static, no server needed)
+└── docs/                          <- reviewer-facing prototype and GitHub Pages root (static, no server needed)
     ├── index.html
     ├── data.js
     └── vendor/                    <- Leaflet + Chart.js, vendored locally (no CDN dependency)
@@ -68,13 +68,13 @@ running on better hardware.
 ## How to view the dashboard (no installation needed)
 
 The dashboard is a fully self-contained static site — Leaflet and Chart.js
-are vendored locally in `dashboard/vendor/`, so it does **not** depend on any
+are vendored locally in `docs/vendor/`, so it does **not** depend on any
 CDN for its core libraries (only the map background tiles require an active
 internet connection, which is standard for any web map).
 
 **Easiest way — just open the file:**
 
-1. Open `dashboard/index.html` directly in any modern browser (Chrome,
+1. Open `docs/index.html` directly in any modern browser (Chrome,
    Firefox, Edge) by double-clicking it.
 2. That's it. No server, no build step, no installation.
 
@@ -82,7 +82,7 @@ internet connection, which is standard for any web map).
 security settings do this), run a simple local server instead:
 
 ```bash
-cd dashboard
+cd docs
 python3 -m http.server 8000
 ```
 

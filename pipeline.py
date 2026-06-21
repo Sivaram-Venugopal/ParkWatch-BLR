@@ -586,7 +586,7 @@ with open(f"{OUT_DIR}/chronic_offender_analysis.json", "w") as f:
     json.dump(chronic_analysis, f, indent=2)
 
 # Append to data.js for dashboard consumption
-with open("dashboard/data.js", "a") as f_js:
+with open("docs/data.js", "a") as f_js:
     f_js.write(f"\nconst CHRONIC_OFFENDER_DATA = {json.dumps(chronic_analysis)};\n")
     
 print(f"  Chronic offender analysis complete. Top 20% vehicles cause {tier_breakdown['top_20_pct_cis_share']}% of CIS.")
@@ -633,7 +633,7 @@ with open(f"{OUT_DIR}/metadata.json", "w") as f:
 
 metadata_json_str = json.dumps(metadata)
 
-with open("dashboard/data.js", "w") as f_js:
+with open("docs/data.js", "w") as f_js:
     f_js.write(f"const METADATA = {metadata_json_str};\n")
     f_js.write(f"const ZONES_ALL = {zones_all_json};\n")
     f_js.write(f"const ZONES_PRIORITY = {zones_priority_json};\n")
@@ -714,21 +714,21 @@ try:
                 json.dump(routes, f, indent=2)
             
             # Write for dashboard
-            with open("dashboard/data.js", "a") as f_js:
+            with open("docs/data.js", "a") as f_js:
                 f_js.write(f"\nconst DISPATCH_ROUTES = {json.dumps(routes)};\n")
             print(f"  Generated 3 optimal patrol routes covering Top 15 hotspots.")
         else:
             print("  OR-Tools failed to find a solution.")
-            with open("dashboard/data.js", "a") as f_js:
+            with open("docs/data.js", "a") as f_js:
                 f_js.write("\nconst DISPATCH_ROUTES = [];\n")
     else:
         print("  Not enough critical zones for route optimization.")
-        with open("dashboard/data.js", "a") as f_js:
+        with open("docs/data.js", "a") as f_js:
             f_js.write("\nconst DISPATCH_ROUTES = [];\n")
 except Exception as e:
     print(f"  Route optimization failed: {e}")
     try:
-        with open("dashboard/data.js", "a") as f_js:
+        with open("docs/data.js", "a") as f_js:
             f_js.write("\nconst DISPATCH_ROUTES = [];\n")
     except:
         pass
